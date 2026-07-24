@@ -1,3 +1,9 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Personal / not for cloud sync
+work-spec/
+
+# Company-internal (ZF) skills
+zf-*/
