@@ -14,17 +14,25 @@ jobs:
         run: |
           set -e
           : > /tmp/shas.txt
-          # format: repo|path-in-repo|dest-dir-in-this-repo
+          # format: owner/repo|path-in-repo|dest-dir ("*" = mirror each child dir to repo root)
           while IFS='|' read -r repo path dest; do
+            tmp="/tmp/$(basename "$repo")"
             git clone --depth 1 --filter=blob:none --sparse \
-              "https://github.com/pydantic/$repo" "/tmp/$repo"
-            git -C "/tmp/$repo" sparse-checkout set "$path"
-            rsync -a --delete "/tmp/$repo/$path/" "./$dest/"
-            echo "$repo@$(git -C "/tmp/$repo" rev-parse --short HEAD)" >> /tmp/shas.txt
+              "https://github.com/$repo" "$tmp"
+            git -C "$tmp" sparse-checkout set "$path"
+            if [ "$dest" = "*" ]; then
+              for d in "$tmp/$path"/*/; do
+                rsync -a --delete "$d" "./$(basename "$d")/"
+              done
+            else
+              rsync -a --delete "$tmp/$path/" "./$dest/"
+            fi
+            echo "$repo@$(git -C "$tmp" rev-parse --short HEAD)" >> /tmp/shas.txt
           done <<'EOF'
-          pydantic-ai|pydantic_ai_slim/pydantic_ai/.agents/skills/building-pydantic-ai-agents|building-pydantic-ai-agents
-          pydantic|.agents/skills/pydantic|pydantic
-          pydantic-ai-harness|pydantic_ai_harness/.agents/skills/pydantic-ai-harness|pydantic-ai-harness
+          pydantic/pydantic-ai|pydantic_ai_slim/pydantic_ai/.agents/skills/building-pydantic-ai-agents|building-pydantic-ai-agents
+          pydantic/pydantic|.agents/skills/pydantic|pydantic
+          pydantic/pydantic-ai-harness|pydantic_ai_harness/.agents/skills/pydantic-ai-harness|pydantic-ai-harness
+          anthropics/skills|skills|*
           EOF
 
       - name: Commit if changed
