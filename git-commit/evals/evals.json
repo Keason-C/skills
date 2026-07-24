@@ -1,0 +1,26 @@
+{
+  "skill_name": "git-commit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "这是我的新项目，刚刚初始化了git仓库，帮我提交代码，这是项目的初始版本",
+      "expected_output": "创建 CHANGELOG.md（包含项目概述和初始功能列表，中文），生成符合 Conventional Commits 格式的英文 commit message（feat 或 chore 类型），完成 git commit",
+      "files": [],
+      "setup": "创建临时 git 仓库，包含 FastAPI 项目文件（main.py, requirements.txt, .env.example）"
+    },
+    {
+      "id": 2,
+      "prompt": "我新增了一个Excel数据导出功能，相关文件已经修改了，帮我commit一下",
+      "expected_output": "追加更新 CHANGELOG.md（在顶部新增条目，记录变更内容和时间，中文），生成 feat 类型的英文 commit message，完成 git commit",
+      "files": [],
+      "setup": "创建有3次历史提交的 git 仓库（包含 CHANGELOG.md），新增 api/export.py 并修改 main.py"
+    },
+    {
+      "id": 3,
+      "prompt": "parser那边的空指针bug修了，帮我commit一下",
+      "expected_output": "追加更新 CHANGELOG.md（在顶部新增条目，记录修复内容，中文），生成 fix 类型的英文 commit message，完成 git commit",
+      "files": [],
+      "setup": "创建有5次历史提交的 git 仓库（包含 CHANGELOG.md），修改 utils/parser.py"
+    }
+  ]
+}
