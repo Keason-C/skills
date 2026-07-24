@@ -4,23 +4,37 @@
     {
       "id": 1,
       "prompt": "这是我的新项目，刚刚初始化了git仓库，帮我提交代码，这是项目的初始版本",
-      "expected_output": "创建 CHANGELOG.md（包含项目概述和初始功能列表，中文），生成符合 Conventional Commits 格式的英文 commit message（feat 或 chore 类型），完成 git commit",
+      "expected_output": "生成符合 Conventional Commits 格式的英文 commit message（feat 或 chore 类型）并完成 git commit；不创建也不修改 CHANGELOG.md",
       "files": [],
       "setup": "创建临时 git 仓库，包含 FastAPI 项目文件（main.py, requirements.txt, .env.example）"
     },
     {
       "id": 2,
       "prompt": "我新增了一个Excel数据导出功能，相关文件已经修改了，帮我commit一下",
-      "expected_output": "追加更新 CHANGELOG.md（在顶部新增条目，记录变更内容和时间，中文），生成 feat 类型的英文 commit message，完成 git commit",
+      "expected_output": "生成 feat 类型、带合适 scope 的英文 commit message 并完成 git commit；不触碰 CHANGELOG.md",
       "files": [],
-      "setup": "创建有3次历史提交的 git 仓库（包含 CHANGELOG.md），新增 api/export.py 并修改 main.py"
+      "setup": "创建有3次历史提交的 git 仓库，新增 api/export.py 并修改 main.py"
     },
     {
       "id": 3,
       "prompt": "parser那边的空指针bug修了，帮我commit一下",
-      "expected_output": "追加更新 CHANGELOG.md（在顶部新增条目，记录修复内容，中文），生成 fix 类型的英文 commit message，完成 git commit",
+      "expected_output": "生成 fix(parser) 类型的英文 commit message 并完成 git commit；不触碰 CHANGELOG.md",
       "files": [],
-      "setup": "创建有5次历史提交的 git 仓库（包含 CHANGELOG.md），修改 utils/parser.py"
+      "setup": "创建有5次历史提交的 git 仓库，修改 utils/parser.py"
+    },
+    {
+      "id": 4,
+      "prompt": "最近改了不少东西，帮我出个 changelog",
+      "expected_output": "读取自上个 tag（或 CHANGELOG 最近日期）以来的 git log，按 新增/修复/变更 分类汇总为中文条目并置顶写入 CHANGELOG.md；聚合相关提交，跳过 style/merge 噪音；询问是否提交并打 tag，不擅自打 tag",
+      "files": [],
+      "setup": "创建有 8 次历史提交的 git 仓库（含 feat/fix/chore/style 混合提交和一个 v0.1.0 tag），工作区干净"
+    },
+    {
+      "id": 5,
+      "prompt": "帮我commit一下这次的文档修改",
+      "expected_output": "生成 docs 类型的英文 commit message 并完成 git commit；即使仓库中已存在 CHANGELOG.md 也不更新它",
+      "files": [],
+      "setup": "创建有历史提交且包含 CHANGELOG.md 的 git 仓库，修改 README.md"
     }
   ]
 }
