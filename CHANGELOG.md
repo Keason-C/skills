@@ -4,6 +4,17 @@
 
 ---
 
+## [v0.1.3] - 2026-07-24 15:10
+
+### 变更内容
+- 修复同步工作流 push 竞态（上次运行失败根因）：push 前先 `git pull --rebase`，并加 `concurrency` 组防止两个 run 并发
+- 新增扇出保护名单：`git-commit`、`zf-*` 目录永不被上游同名技能覆盖（沙盘实测通过）
+- 新增 glob 失配守卫：上游路径为空时立即报错退出，不再产生 `*` 垃圾目录
+- `actions/checkout` 升级 v4 → v5（消除 Node 20 弃用警告）；修正 commit message 中 `paste` 多字符分隔符轮换问题
+
+### 涉及文件
+- `.github/workflows/sync-upstream.yml` — 竞态修复、守卫、保护名单、checkout 升级
+
 ## [v0.1.2] - 2026-07-24 14:49
 
 ### 变更内容

@@ -4,16 +4,23 @@ on:
   workflow_dispatch:                   # manual trigger for testing
 permissions:
   contents: write
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Sync upstream skills (sparse)
         run: |
-          set -e
+          set -euo pipefail
           : > /tmp/shas.txt
+          # dirs that must never be overwritten by fan-out sync
+          is_protected() {
+            case "$1" in git-commit|zf-*) return 0;; *) return 1;; esac
+          }
           # format: owner/repo|path-in-repo|dest-dir ("*" = mirror each child dir to repo root)
           while IFS='|' read -r repo path dest; do
             tmp="/tmp/$(basename "$repo")"
@@ -22,9 +29,16 @@ jobs:
             git -C "$tmp" sparse-checkout set "$path"
             if [ "$dest" = "*" ]; then
               for d in "$tmp/$path"/*/; do
-                rsync -a --delete "$d" "./$(basename "$d")/"
+                [ -d "$d" ] || { echo "::error::no dirs matched for $repo/$path"; exit 1; }
+                name="$(basename "$d")"
+                if is_protected "$name"; then
+                  echo "skip protected dir: $name"
+                  continue
+                fi
+                rsync -a --delete "$d" "./$name/"
               done
             else
+              [ -d "$tmp/$path" ] || { echo "::error::missing $repo/$path"; exit 1; }
               rsync -a --delete "$tmp/$path/" "./$dest/"
             fi
             echo "$repo@$(git -C "$tmp" rev-parse --short HEAD)" >> /tmp/shas.txt
@@ -41,5 +55,6 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && { echo "no changes"; exit 0; }
-          git commit -m "sync upstream skills ($(paste -sd', ' /tmp/shas.txt))"
+          git commit -m "sync upstream skills ($(paste -sd, /tmp/shas.txt))"
+          git pull --rebase origin main
           git push
