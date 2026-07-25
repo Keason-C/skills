@@ -400,7 +400,7 @@ SubAgents -> ['delegate_task']
 - **Planning（任务规划）** = 给模型一个 `write_plan` 工具
 - **SubAgents（多智能体）** = 给模型一个 `delegate_task` 工具
 
-再看一批（都是实测输出）：
+再看一批（**除 `CodeMode` / `DynamicWorkflow` 两行取自 README、未实跑外，其余均为实测输出**）：
 
 | 能力卡 | 注入的工具 |
 |---|---|
@@ -480,7 +480,7 @@ pydantic-ai 2.17.0 核心库自带的能力卡如下。这是我用 `dir(pydanti
 | `SetToolMetadata` | 给工具打元数据标签，供其他能力筛选 | ✅ |
 | `IncludeToolReturnSchemas` | 把工具的**返回值结构**也告诉模型 | ✅ |
 | `NativeTool` | 注册一个厂商原生工具 | ✅ |
-| `NativeOrLocalTool` | 原生工具 + 本地降级方案的配对（上面 A 组的基类） | ✅ |
+| `NativeOrLocalTool` | 原生工具 + 本地降级方案的配对（上面 A 组的基类） | ❌ |
 | `Toolset` | 把一个现成的 toolset 包成能力卡 | ❌ |
 
 **C 组｜选模型 / 控成本**
@@ -1619,7 +1619,7 @@ INSTR: 发起退款前务必先确认订单号。
 
 真实构造函数签名（读源码 `capabilities/capability.py`）：
 
-```python
+```text
 Capability(
     *,
     instructions=None,      # 静态字符串 和/或 提示词函数
@@ -1723,7 +1723,7 @@ INSTR: 你最多只能调用 2 次工具。
 | 包 | `wrap_tool_execute` | 包住整个执行（中间件语义） |
 | 错 | `on_tool_execute_error` | 执行出错时接管 |
 
-一共有 **8 个节点** × 4 种形态：run（整体运行）、node（图节点）、model_request（模型请求）、tool_validate（工具参数校验）、tool_execute（工具执行）、output_validate（输出校验）、output_process（输出处理），外加 `prepare_tools` / `prepare_output_tools` / `handle_deferred_tool_calls` / `wrap_run_event_stream` / `resolve_model_id`。
+一共有 **7 个节点** × 4 种形态：run（整体运行）、node（图节点）、model_request（模型请求）、tool_validate（工具参数校验）、tool_execute（工具执行）、output_validate（输出校验）、output_process（输出处理），外加 `prepare_tools` / `prepare_output_tools` / `handle_deferred_tool_calls` / `wrap_run_event_stream` / `resolve_model_id`。
 
 **`for_run`——每次运行独立状态（重要）**
 
@@ -3022,7 +3022,7 @@ CodeMode(dynamic_catalog=True)
 
 #### 完整 API（README 原文）
 
-```python
+```text
 CodeMode(
     tools: ToolSelector = 'all',        # 'all'、名字列表、判断函数、或元数据字典
     max_retries: int = 3,               # 沙箱执行出错时的重试次数
@@ -3126,7 +3126,7 @@ r = agent.run_sync('读 config.toml，告诉我包名')
 
 > ⚠️ **坑（非常重要）**：`protected_patterns` 是 **只读**，不是 **不可见**。我实测了一下：
 
-```python
+```text
 # 默认配置下，让模型去读 .env
 # → 成功读到了！
 ToolReturnPart -> '[.env | 1 lines | hash:747de347e1c9]\n     1\tSECRET=1\n'
@@ -3206,7 +3206,7 @@ print(list(LLM_API_KEY_ENV_PATTERNS))
 > Shell(cwd='./workspace', allowed_commands=['ls', 'cat', 'rg'])
 > ```
 >
-> **这行代码在 0.10.0 上会直接抛异常**（实测）：
+> **这行代码本身构造不会报错，但把它交给 `Agent(...)` 时会抛异常**（实测，错误来自 `pydantic_ai_harness/shell/_toolset.py:126`，在 agent 装载工具集那一刻触发）：
 >
 > ```text
 > ValueError: Specify allowed_commands or denied_commands, not both.
@@ -3218,7 +3218,7 @@ print(list(LLM_API_KEY_ENV_PATTERNS))
 > Shell(cwd='./workspace', allowed_commands=['ls', 'cat', 'rg'], denied_commands=[])
 > ```
 >
-> 实测这样就能正常构造。**这也是 0.x Alpha 阶段包的典型状况：文档和实现之间会有出入。** 请把"README 的示例可能跑不通"作为常态预期。
+> 原因是 `denied_commands` 有一个**非空默认值**（上面那批危险命令），所以你只传了 `allowed_commands`，框架仍判定为「两个都给了」。显式清空后，**实测 Agent 才能正常装载**。**这也是 0.x Alpha 阶段包的典型状况：文档和实现之间会有出入。** 请把"README 的示例可能跑不通"作为常态预期。
 
 **关键参数**（实测签名）：
 
@@ -4693,7 +4693,7 @@ warnings.filterwarnings('ignore', category=HarnessExperimentalWarning)
 │              ↓ 其中"钩子"这一项展开就是                            │
 │                                                                 │
 │   Hooks 生命周期钩子                                             │
-│   └─ 在 8 个节点 × 4 种形态上插入你的代码                          │
+│   └─ 在 7 个节点 × 4 种形态上插入你的代码                          │
 │      （埋点 / 权限 / 脱敏 / 成本 / 告警）                          │
 │              │                                                  │
 │              ↓ 而现成的卡从哪来                                    │
