@@ -146,6 +146,8 @@
 | **`TestModel` 必须配 `agent.override()`** | 不要直接改 `agent.model`；用 `with agent.override(model=TestModel()):` |
 | **`native=True` 的工具绕过 CodeMode** | 原生工具在服务端执行，沙箱里的 `run_code` 根本看不到它 |
 | **沙箱管代码不管工具权限** | CodeMode 的沙箱只限制"AI 写的那段脚本"，脚本里调用的工具**仍有其原本的全部权限**。危险工具必须自己加校验 |
+| 🔴 **`FileSystem` 的 `protected_patterns` 只挡写、不挡读** | 名字叫 "protected" 很容易理解成"完全屏蔽"，实际**只是只读**。把 `.env` 放进 `protected_patterns`，AI 照样能读出里面的密钥并送进模型上下文。**要真正屏蔽必须用 `denied_patterns`。**（已实测：`protected` 下 AI 读出 `API_KEY=sk-...`；`denied` 下报 `Path '.env' is denied by pattern '.env'.`） |
+| **`Shell` 用白名单时必须显式清空黑名单** | 直觉上 `Shell(cwd=..., allowed_commands=['ls'])` 就够了，但它会在 **agent 装载工具时**（不是构造时）抛 `ValueError: Specify allowed_commands or denied_commands, not both.`——因为 `denied_commands` 自带一份默认黑名单，等于"两个都给了"。正确写法：`Shell(cwd=..., allowed_commands=['ls'], denied_commands=[])`（实测：只给 allowed ❌／allowed+空 denied ✅／allowed+非空 denied ❌） |
 | **裸 `async for node in agent_run` 不触发 node hooks** | 要触发 capability 的 `before_node_run` 等钩子，得用 `agent_run.next(node)` 或直接 `agent.run()` |
 
 ### B.3 Pydantic Graph 层

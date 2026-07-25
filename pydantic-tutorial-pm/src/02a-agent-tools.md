@@ -6,11 +6,14 @@
 
 ### 关于版本：这篇教程基于 Pydantic AI **2.17.0**
 
-本文所有代码都在 Python 3.11 + `pydantic-ai==2.17.0` 上**实际跑过**，输出是真实粘贴的，不是我想象出来的。
+本文所有代码都在 Python 3.11 + `pydantic-ai==2.17.0` 上**实际跑过**，输出均来自实跑（个别很长的 JSON 为排版做了折行压缩，内容未改）。
 
 这一点很重要，因为 **Pydantic AI 在 2026 年 6 月发布了 V2**，相对 V1 有大量破坏性改动。网上（包括很多 AI 助手的记忆里）流传的还是 V1 写法。凡是本文与你在别处看到的写法不一致的地方，**以本文为准**，并且我会在正文里用 `> ⚠️ **坑**：` 明确标出来。文末还有一张完整的「v1 → v2 变更速查表」。
 
-一个立刻能用上的小技巧：本文所有例子都不需要 API Key、不花钱、不联网。因为 Pydantic AI 自带一个假模型：
+一个立刻能用上的小技巧：本文**绝大多数**例子都不需要 API Key、不花钱、不联网，因为 Pydantic AI 自带一个假模型：
+
+> ⚠️ **唯一的例外**：少数几处专门演示「真实模型字符串怎么写」的片段会构造真实 provider。Pydantic AI 在 `Agent(...)` **构造那一刻**就检查 API Key，没 Key 会直接抛 `UserError`。遇到这种块，加 `defer_model_check=True` 即可跳过检查；`infer_model()` 那种绕不开的，在环境变量里填个占位符就行（如 `OPENAI_API_KEY=x`），**不会发出任何网络请求**。这个坑本身在 1.5 节有详解。
+
 
 ```python
 from pydantic_ai import Agent
@@ -344,7 +347,7 @@ stateDiagram-v2
 
 关键在于那条 **`CallToolsNode → ModelRequestNode` 的回边**：这就是所谓的 "Agent 循环"。模型一次答不完，就多来几轮；每一轮都要重新调一次模型（**每一轮都是钱**）。
 
-> 👉 **PM 视角**：这张图直接解释了**AI Agent 功能为什么又慢又贵**。用户问一个问题，看起来是一次交互，但底下可能是「问模型 → 查数据库 → 再问模型 → 调支付接口 → 再问模型 → 出结果」，也就是 **3 次大模型调用**。你在做成本估算和延迟预算时，不能按"一次问答一次调用"来算，要按"平均循环轮数 × 单次成本"来算。而 `UsageLimits(request_limit=N)`（见 2.26）就是给这个循环设的**熔断器**。
+> 👉 **PM 视角**：这张图直接解释了**AI Agent 功能为什么又慢又贵**。用户问一个问题，看起来是一次交互，但底下可能是「问模型 → 查数据库 → 再问模型 → 调支付接口 → 再问模型 → 出结果」，也就是 **3 次大模型调用**。你在做成本估算和延迟预算时，不能按"一次问答一次调用"来算，要按"平均循环轮数 × 单次成本"来算。而 `UsageLimits(request_limit=N)`（见 2.21）就是给这个循环设的**熔断器**。
 
 ### 1.11 一次 agent.run() 内部到底发生了什么（逐帧回放）
 
@@ -444,7 +447,7 @@ usage       = RunUsage(input_tokens=104, output_tokens=17, requests=2, tool_call
 > 👉 **PM 视角**：这段输出应该被打印出来贴在你们团队的墙上。它把三个最常被 PM 忽略的事实摆在明面上：
 > **(a) 一次用户交互 = N 次模型调用**，N 是变量不是常量，成本和延迟都随 N 线性增长；
 > **(b) 每多一轮，发给模型的上下文就变长一次**，输入 token 是累加的，第 3 轮的输入包含了第 1、2 轮的全部内容——这是长对话成本失控的根源；
-> **(c) 工具是你的代码，模型只是"点了个按钮"**。模型永远没有直接操作数据库的能力，它只能请求你去做，而你可以拒绝（见 3.17 人工审批）。
+> **(c) 工具是你的代码，模型只是"点了个按钮"**。模型永远没有直接操作数据库的能力，它只能请求你去做，而你可以拒绝（见 3.14 人工审批）。
 
 ### 1.12 事件流：把这个过程实时播给用户看
 
@@ -778,7 +781,7 @@ agent.run_sync('看一下上下文', deps=Deps(user_id='u_9'), model=FunctionMod
 | `ctx.retry` / `ctx.max_retries` | 这个工具已经重试几次 / 上限 | 最后一次尝试时换个策略 |
 | `ctx.run_step` | 当前是第几轮循环 | 调试、限流 |
 | `ctx.run_id` / `ctx.conversation_id` | 本次运行 / 本次会话的 ID | 日志串联 |
-| `ctx.tool_call_approved` | 这次工具调用是否已被人工批准 | 人工审批（3.17） |
+| `ctx.tool_call_approved` | 这次工具调用是否已被人工批准 | 人工审批（3.14） |
 
 > ⚠️ **坑（V2 类型变更）**：V2 里未参数化的 `Agent(...)` 推断成 `Agent[object, str]`（V1 是 `Agent[None, str]`）。老代码里显式写了 `RunContext[None]`、`Tool[None]` 的地方，如果并不真的要求 deps 是 `None`，应该改成 `object`。这只影响类型检查，不影响运行。
 
@@ -886,7 +889,7 @@ for t in p.output_tools:
 function_tools = []
 output_mode    = tool
 name        : final_result
-description : The final response which ends this conversation
+description : 一条用户反馈工单。
 kind        : output
 ```
 
@@ -910,7 +913,7 @@ print([n for n in dir(pydantic_ai) if n.endswith('Output')])
 ```
 
 ```text
-['NativeOutput', 'PromptedOutput', 'TextOutput', 'ToolOutput']
+['NativeOutput', 'PromptedOutput', 'TextOutput', 'ToolOrOutput', 'ToolOutput']
 ```
 
 | 模式 | 原理 | 兼容性 | 什么时候用 |
@@ -1116,7 +1119,7 @@ HumanDict = StructuredDict(
     description='A human with a name and age',
 )
 
-agent = Agent('openai:gpt-5.2', output_type=HumanDict)
+agent = Agent('openai:gpt-5.2', defer_model_check=True, output_type=HumanDict)
 ```
 
 > ⚠️ **坑**：`StructuredDict` **不做校验**。Pydantic AI 会把 Schema 传给模型，但不会验证模型的返回值。输出类型是 `dict[str, Any]`，你的代码必须防御性地读取。想要校验，得自己加 `output_validator`。
@@ -1370,7 +1373,7 @@ async with agent.iter('北京天气怎么样？', deps=...) as run:
 print(run.result.output)
 ```
 
-> 👉 **PM 视角**：`iter` 是实现"高危操作需要人工确认"这类需求的底层能力之一（另一条路是 3.17 的工具审批机制，更简洁）。它也是做 **AI 行为审计**的入口——金融、医疗这类强监管行业要求"每一步决策都要留痕"，`iter` 让你可以在每个节点做记录。
+> 👉 **PM 视角**：`iter` 是实现"高危操作需要人工确认"这类需求的底层能力之一（另一条路是 3.14 的工具审批机制，更简洁）。它也是做 **AI 行为审计**的入口——金融、医疗这类强监管行业要求"每一步决策都要留痕"，`iter` 让你可以在每个节点做记录。
 
 ### 2.19 消息历史与多轮对话
 
@@ -1621,7 +1624,7 @@ exhaustive  -> output=Answer(text='搞定')  副作用=['邮件已发给 boss@x.
 from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
 
-my_agent = Agent('openai:gpt-5.2', name='my_agent', instructions='...')
+my_agent = Agent('openai:gpt-5.2', defer_model_check=True, name='my_agent', instructions='...')
 
 
 async def test_my_agent():
@@ -2155,7 +2158,7 @@ Fix the errors and try again.
 >
 > **这些文案应该由产品经理来写或者 review。** 它们不是给开发看的日志，是给 AI 看的纠错指导。
 
-### 3.10 重试次数：四层优先级
+### 3.10 重试次数：分层（官方共 7 层，下表列最常用的）
 
 **解决什么问题**：搞清楚"到底重试几次"这个数是从哪来的。
 
@@ -2514,7 +2517,7 @@ def delete_account(user_id: str) -> str:
 
 对普通用户，`delete_account` **根本没有出现在发给模型的工具清单里**。模型不知道有这个东西，也就不可能调用它。
 
-> ⚠️ **坑（V2 破坏性变更）**：Agent 级的 prepare 回调（`PrepareTools` capability）如果返回 `None`，**V2 会抛 `TypeError`**；V1 是静默地把所有工具都干掉。想表达"这一轮不给任何工具"，要返回**空列表 `[]`**。
+> ⚠️ **坑（V2 破坏性变更）**：Agent 级的 prepare 回调（`PrepareTools` capability）如果返回 `None`，**V2 会抛 `UserError`**（消息原文：``Prepare function '...' returned `None`; return `[]` to expose no tools, or return `tool_defs` to pass them through unchanged.``）。注意这条**只针对 Agent 级**的 `PrepareTools`；**工具级** `prepare` 返回 `None` 仍然是「隐藏这一个工具」的正常语义，两者别混；V1 是静默地把所有工具都干掉。想表达"这一轮不给任何工具"，要返回**空列表 `[]`**。
 
 > 👉 **PM 视角**：`prepare` 是实现**权限分级**和**渐进式功能开放**的正确姿势，而且它比"在工具里检查权限然后报错"好得多：
 >

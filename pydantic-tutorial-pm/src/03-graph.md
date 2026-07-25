@@ -87,7 +87,7 @@ async def main():
 asyncio.run(main())                            # ← 用它启动
 ```
 
-> ⚠️ **坑**：反过来，**`graph.run_sync()` 不能放进 `async def` 里**——它内部会自己启动一个事件循环，而 async 函数里已经有一个在跑了，会直接报错。一句话记法：**同步环境用 `run_sync()`，异步环境用 `await run()`，两者不能混。** 详见 3.4 节的实测报错。
+> ⚠️ **坑**：反过来，**`graph.run_sync()` 不能放进 `async def` 里**——它内部会自己启动一个事件循环，而 async 函数里已经有一个在跑了，会直接报错。一句话记法：**同步环境用 `run_sync()`，异步环境用 `await run()`，两者不能混。** 详见 2.4 节的实测报错。
 
 ---
 
@@ -713,7 +713,7 @@ stateDiagram-v2
 
 `Annotated[StepNode[...], close_ticket]` 这个写法有点丑，原因是 Python 类型系统没法在类型里表达"这是 `close_ticket` 这个具体的 step"，所以要把 step 对象本身当作元数据挂在 `Annotated` 上。库在读注解时会把它挑出来。
 
-> ⚠️ **坑**：如果你写了 `-> StepNode[S, D]` 却忘了套 `Annotated[..., 那个step]`，`build()` 会抛 `GraphSetupError`，提示你 "return type hint includes a `StepNode` without a `Step` annotation"。
+> ⚠️ **坑**：如果你写了 `-> StepNode[S, D]` 却忘了套 `Annotated[..., 那个step]`，**在 `g.add()` / `g.node()` 注册这一步就会抛** `GraphSetupError`（不用等到 `build()`），提示你 "return type hint includes a `StepNode` without a `Step` annotation"。
 
 > 👉 **PM 视角**：混用其实很自然——**主干用状态机（BaseNode）画清楚"单子现在在哪一站"，具体每一站的活儿用 step 写**。就像审批流的主干是"待提交 → 待审批 → 待打款 → 已完成"，但"待打款"这一站内部要调三方支付接口、写流水、发通知，这些用 step 更顺手。
 
@@ -836,15 +836,15 @@ for nid, node in graph.nodes.items():
 ```
 
 ```text
+__start__            StartNode
 profile              Step
 make_copy            Step
-__start__            StartNode
 __end__              EndNode
 ```
 
 注意起点和终点的 ID 是固定的 `__start__` / `__end__`。
 
-> ⚠️ **坑**：`node_id` 冲突会在 `build()` 时抛 `GraphBuildingError: All nodes must have unique node IDs.`。如果你有两个同名函数（比如在不同模块里都叫 `process`），必须手动指定 `node_id`。
+> ⚠️ **坑**：`node_id` 冲突**在 `g.add()` 注册时就会抛** `GraphBuildingError: All nodes must have unique node IDs.`（不用等到 `build()`）。如果你有两个同名函数（比如在不同模块里都叫 `process`），必须手动指定 `node_id`。
 
 > 👉 **PM 视角**：`label` 是你能直接施加影响的地方。让工程师给每个节点写中文 label，`render()` 出来的图业务方就能直接看懂，不用再翻译一遍。这是**最低成本的流程文档**。
 
@@ -881,7 +881,9 @@ g.add(
     g.node(Reject),
 )
 graph = g.build()          # build() 不报错
-await graph.run(inputs=90) # ← 运行时炸
+
+import asyncio
+asyncio.run(graph.run(inputs=90))   # ← 跑到这一步才炸
 ```
 
 实跑报错：
@@ -2097,11 +2099,15 @@ class CounterState:
 
 @g.step
 async def accumulate(ctx: StepContext[CounterState, None, int]) -> int:
-    ctx.state.total += ctx.inputs      # ← 副作用
+    ctx.state.total += ctx.inputs      # ← 副作用（注意：这里安全，原因见下方说明）
     return ctx.inputs
 
 
 ignore = g.join(reduce_null, initial=None)    # ← 丢掉所有返回值
+# 说明：4.2 节警告过"并行分支里别做读-改-写"，这里的 += 为什么安全？
+# 因为 asyncio 是单线程，而 `ctx.state.total += ctx.inputs` 这一行中间没有 await 点，
+# 不会被其他任务插进来。但只要中间出现 await（查库、调 API），就会真的丢更新——
+# 那时必须改用 join 的 reducer 来累加，不能直接改 state。
 
 
 @g.step
@@ -2330,7 +2336,7 @@ stateDiagram-v2
 
 ### 5.8 空集合的坑：`downstream_join_id`
 
-`.map()` 一个**空列表**会怎样？没有任何并行任务被创建，那么下游的 join **永远等不到东西**。
+`.map()` 一个**空列表**会怎样？没有任何并行任务被创建，那么下游的 join **永远等不到东西，这条支路会被整个跳过**。
 
 解决办法是告诉 map："如果我是空的，直接跳到这个 join"：
 
@@ -2351,7 +2357,7 @@ g2.add(
 []
 ```
 
-正确地拿到了空列表，而不是卡死。
+正确地拿到了空列表，而不是抛 `RuntimeError`。
 
 用 `.map()` 链式写法时同样可以传：
 
@@ -2363,7 +2369,7 @@ g.edge_from(source).map(downstream_join_id=collect.id).to(handle)
 >
 > **规则：只要边上有 `.map()`，就把 `downstream_join_id` 填上。** 成本为零，能省掉一次线上事故。
 
-> 👉 **PM 视角**：这就是经典的"**空状态没考虑**"。PM 在评审时可以直接问工程师一句："这个批量处理，如果一条数据都没有会怎样？" 在这个库里，答案要么是"配了 downstream_join_id，正常返回空"，要么是"没配，会卡死"。
+> 👉 **PM 视角**：这就是经典的"**空状态没考虑**"。PM 在评审时可以直接问工程师一句："这个批量处理，如果一条数据都没有会怎样？" 在这个库里，答案要么是"配了 `downstream_join_id`，正常返回空"，要么是"没配——**简单图形直接抛 `RuntimeError: Graph run completed, but no result was produced`；多分支图形更糟，那条支路的数据被静默丢掉，结果对不上却不报错**"。后者是真正危险的那种。
 
 ### 5.9 嵌套并行
 
@@ -2503,7 +2509,7 @@ stateDiagram-v2
   report --> [*]
 ```
 
-> ⚠️ **坑**：如果两个 join 用同一个 reducer 函数（比如都用 `reduce_list_append`）且不指定 `node_id`，它们的默认 ID 会冲突。**多个 join 就手动给 `node_id`。**
+> 💡 **提示**：多个 join 用同一个 reducer 时，默认 ID 会自动加后缀（`reduce_list_append`、`reduce_list_append_2`），**不会报错**。但图上认不出谁是谁——建议手动给业务化的 `node_id`。
 
 > 👉 **PM 视角**：这张图是"**多渠道数据聚合**"的标准结构——各渠道独立采集、独立汇总、最后合并出报表。图上一眼能看出"天猫和京东这两条线是完全隔离的"，出问题时能快速定位是哪条线挂了。
 
@@ -2736,7 +2742,7 @@ event=EndMarker(_value='8888.0 元人工批准')
 >
 > ```text
 > GraphValidationError: The following nodes are not reachable from the start node:
-> ['manual_review']. If this is intentional, you can suppress this error by passing
+> ['human_approve']. If this is intentional, you can suppress this error by passing
 > `validate_graph_structure=False` to the call to `GraphBuilder.build`.
 > ```
 >
@@ -3035,9 +3041,9 @@ for nid, node in graph.nodes.items():
 ```
 
 ```text
+__start__            StartNode
 profile              Step
 make_copy            Step
-__start__            StartNode
 __end__              EndNode
 ```
 
@@ -3549,7 +3555,7 @@ decision --> 财务审批: >1000
 | 1 | **无持久化** | 不能跨进程续跑 | 拆成多个 run，或上 durable execution |
 | 2 | **`@g.step` 返回 BaseNode 的 union 会运行时崩** | `build()` 不报错，跑到才炸 | 把分流逻辑挪进 `BaseNode`，或用显式 `g.decision()`（见 3.7） |
 | 3 | **decision 没有兜底会崩** | `RuntimeError: No branch matched` | 每个 decision 最后加 `g.match(TypeExpression[object])` |
-| 4 | **`.map()` 空列表会卡死 join** | 测试环境不复现，线上遇到空数据挂 | 永远填 `downstream_join_id=` |
+| 4 | **`.map()` 空列表导致 join 收不到值** | 简单图形抛 `RuntimeError`；多分支图形**静默丢数据**（结果对不上却不报错，最危险） | 永远填 `downstream_join_id=` |
 | 5 | **没有并发上限** | list 多长就起多少并行任务，可能打爆下游 | 在 step 内部自己加信号量 |
 | 6 | **循环没有最大轮次** | 条件不满足就死循环 | 在流转的数据里带计数器，加熔断分支 |
 | 7 | **`matches` 拿不到 state/deps** | 分支条件不能依赖状态 | 把需要的信息塞进流转的值里 |
@@ -3558,7 +3564,7 @@ decision --> 财务审批: >1000
 | 10 | **`initial=[]` 会跨 run 串数据** | 第二次跑带着第一次的结果 | 可变类型永远用 `initial_factory=` |
 | 11 | **`run_sync` 不能在 async 里调** | `RuntimeError: This event loop is already running` | async 环境用 `await graph.run()` |
 | 12 | **裸 `async for node in agent_run` 不触发 node hooks** | 审计/计费/限流静默失效 | 用 `agent.run()` 或 `agent_run.next(node)` |
-| 13 | **节点 ID 冲突** | `GraphBuildingError` | 多个同名函数/多个同 reducer 的 join 要手动 `node_id=` |
+| 13 | **节点 ID 冲突** | `GraphBuildingError` | 多个同名函数（如不同模块都叫 `process`）要手动 `node_id=` |
 | 14 | **不可达节点导致 build 失败** | 想留一个"只能被 override_next 跳转到"的节点时会报错 | `g.build(validate_graph_structure=False)` |
 | 15 | **学习曲线陡** | 官方原话："designed for advanced users and makes heavy use of Python generics and type hints. It is not designed to be as beginner-friendly as Pydantic AI." | 评估团队能力，渐进式采用 |
 

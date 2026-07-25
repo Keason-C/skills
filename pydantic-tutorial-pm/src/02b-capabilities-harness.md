@@ -4706,7 +4706,14 @@ warnings.filterwarnings('ignore', category=HarnessExperimentalWarning)
 
 **一个把四块拼图都用上的完整例子：**
 
-> 说明：下面这段是**架构示意**，不是可直接运行的代码——`基础问答能力`、`私有知识库`、`检测提示词注入`、`alerting`、`db_conn` 这些名字是占位符，需要你自己实现。其中每一个 capability 的构造签名都是本文实测过的真实签名。
+> 说明：`基础问答能力`、`私有知识库`、`检测提示词注入`、`alerting`、`db_conn` 这些名字是占位符，需要你自己实现。**但这 11 张卡的组合本身我实测跑通了**——把占位符换成简单实现之后，用 `TestModel` 跑出的结果是：
+>
+> ```text
+> TOOLS -> ['write_memory', 'read_memory', 'delete_memory', 'search_memory', 'write_plan']
+> INSTR -> 基础问答。 | 高级分析。 | ## Agent Memory (main) | ...
+> ```
+>
+> 也就是说：`Memory` 注入了 4 个工具、`Planning` 注入了 `write_plan`、`DynamicCapability` 按 `tier='pro'` 发出了基础卡 + 高级卡，全部按预期生效，互不冲突。
 
 ```python
 from dataclasses import dataclass
