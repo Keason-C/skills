@@ -14,20 +14,20 @@ from pygments.lexers import get_lexer_by_name, TextLexer
 from playwright.sync_api import sync_playwright
 
 BASE = Path(__file__).parent
-SRC = BASE / "tutorial"
-OUT_HTML = BASE / "book.html"
-OUT_PDF = BASE / "Pydantic全栈教程-PM视角.pdf"
+SRC = BASE / "de"
+OUT_HTML = BASE / "buch_de.html"
+OUT_PDF = BASE / "Pydantic-Komplettkurs-CEO-Perspektive.pdf"
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 
 # (文件名, 部分标题, 副标题) —— None 表示不另起「部分」大标题
 PARTS = [
     ("00-导读.md",                  None, None),
-    ("01-pydantic.md",              "第一部分  Pydantic", "数据校验：一切的地基"),
-    ("02a-agent-tools.md",          "第二部分  Pydantic AI", "把大模型装进合同里"),
+    ("01-pydantic.md",              "Teil I  Pydantic", "Datenvalidierung: das Fundament von allem"),
+    ("02a-agent-tools.md",          "Teil II  Pydantic AI", "Das LLM in einen Vertrag einbinden"),
     ("02b-capabilities-harness.md", None, None),
-    ("03-graph.md",                 "第三部分  Pydantic Graph", "当流程复杂到一个循环装不下"),
-    ("04-shizhan.md",               "第四部分  综合实战", "把三者串成一个真实系统"),
-    ("05-fulu.md",                  "附录", "速查表 · 常见坑 · 决策树"),
+    ("03-graph.md",                 "Teil III  Pydantic Graph", "Wenn ein einzelner Loop nicht mehr reicht"),
+    ("04-shizhan.md",               "Teil IV  Praxis", "Alle drei zu einem echten System verbinden"),
+    ("05-fulu.md",                  "Anhang", "Spickzettel · Fallstricke · Entscheidungsbäume"),
 ]
 
 
@@ -224,23 +224,23 @@ def main() -> int:
     body, toc = collect(md)
     pyg = HtmlFormatter(cssclass="hl").get_style_defs(".hl")
 
-    page = f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<title>Pydantic 全栈教程 · PM 视角</title>
+    page = f"""<!DOCTYPE html><html lang="de"><head><meta charset="utf-8">
+<title>Pydantic Komplettkurs · CEO-Perspektive</title>
 <style>{CSS}
 {pyg}
 </style></head><body>
 <div class="cover">
-  <div class="kicker">写给产品经理的技术教程</div>
-  <h1>Pydantic 全栈教程</h1>
-  <div class="sub">从数据校验到 AI Agent，再到图工作流</div>
+  <div class="kicker">Ein Technik-Handbuch für CEOs</div>
+  <h1>Pydantic Komplettkurs</h1>
+  <div class="sub">Von Datenvalidierung über AI-Agenten bis zu Graph-Workflows</div>
   <hr>
   <div class="chain"><b>Pydantic</b> &nbsp;→&nbsp; <b>Pydantic AI</b> &nbsp;→&nbsp; <b>Pydantic Graph</b></div>
   <div class="meta">
-    基准版本：pydantic 2.13.4 · pydantic-ai 2.17.0 (v2) · pydantic-graph 2.17.0 · pydantic-ai-harness 0.10.0<br>
-    全部代码均在上述版本实测运行验证
+    Referenzversionen: pydantic 2.13.4 · pydantic-ai 2.17.0 (v2) · pydantic-graph 2.17.0 · pydantic-ai-harness 0.10.0<br>
+    Sämtlicher Code wurde in diesen Versionen tatsächlich ausgeführt und verifiziert
   </div>
 </div>
-<div class="toc"><h2>目录</h2>
+<div class="toc"><h2>Inhaltsverzeichnis</h2>
 {toc_html(toc)}
 </div>
 {body}
@@ -270,7 +270,9 @@ def main() -> int:
     print(f"PDF 生成: {OUT_PDF}")
     print(f"  页数: {len(r.pages)}   大小: {OUT_PDF.stat().st_size/1024/1024:.2f} MB")
     txt = "".join((r.pages[i].extract_text() or "") for i in range(min(6, len(r.pages))))
-    print(f"  中文校验: {'OK' if any('一' <= c <= '鿿' for c in txt) else '失败!!'}")
+    umlaut = sum(txt.count(c) for c in "äöüÄÖÜß")
+    print(f"  德语字符校验: {'OK' if umlaut > 20 else '失败!!'}  (变音符共 {umlaut} 处)")
+    print(f"  CJK 代码字面量渲染: {'OK' if any('一' <= c <= '鿿' for c in ''.join((r.pages[i].extract_text() or '') for i in range(40, min(60, len(r.pages))))) else '(该区间无CJK)'}")
     return 0
 
 

@@ -2,7 +2,14 @@
 
 一本写给**产品经理**的中文技术教程，覆盖 `pydantic` → `pydantic-ai` → `pydantic-graph` 三层。
 
-**成品**：[`Pydantic全栈教程-PM视角.pdf`](./Pydantic全栈教程-PM视角.pdf)（约 300 页）
+**成品**：
+
+| 版本 | 文件 | 页数 | 源码 |
+|---|---|---|---|
+| 🇨🇳 中文 · PM 视角 | [`Pydantic全栈教程-PM视角.pdf`](./Pydantic全栈教程-PM视角.pdf) | 300 | `src/` |
+| 🇩🇪 德文 · CEO-Perspektive | [`Pydantic-Komplettkurs-CEO-Perspektive.pdf`](./Pydantic-Komplettkurs-CEO-Perspektive.pdf) | 330 | `src-de/` |
+
+德文版是中文版的完整翻译（"产品经理"→"CEO"），**代码、程序输出、报错原文、mermaid 图全部保持字节级不变**，仅翻译散文与 `#` 注释。翻译一致性由 `verify_de.py` 自动把关。
 
 ## 这本书是什么
 
@@ -47,3 +54,19 @@ python check_code.py    # 自动校验：代码块语法、章节编号、结构
 ```
 
 依赖：`markdown-it-py`、`pygments`、`playwright`（复用系统 Chromium）、`pypdf`；中文字体需 `fonts-noto-cjk`。
+
+## 德文版构建与校验
+
+```bash
+python build_pdf_de.py   # 读 src-de/*.md → 生成德文 PDF
+python verify_de.py      # 翻译质量闸门（见下）
+```
+
+`verify_de.py` 是翻译的自动化闸门，逐块比对中德两版：
+
+- ```text / ```json / ```bash 块必须**逐字节相同**（真实程序输出、报错原文、mermaid 图）
+- ```python 块除 `#` 注释外必须相同（字符串字面量、API 名、变量名一律保留）
+- 表格行数、章节数必须一致
+- ASCII 示意图属散文，允许翻译（会重新按东亚字宽对齐）
+
+判断某处中文该不该译的标准：**这个值会不会出现在下面的输出块里？** 会 → 一个字不能动；不会（纯示意占位、举例用的 docstring）→ 该译。必须保留但读者读不懂含义的，保留原文 + 加德语括注。
