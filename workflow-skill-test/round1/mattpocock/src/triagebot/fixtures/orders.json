@@ -1,0 +1,50 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "customer_id": "CUST-1",
+    "state": "DELIVERED",
+    "placed_on": "2026-06-02",
+    "total": "129.99",
+    "days_since_delivery": 12
+  },
+  {
+    "order_id": "ORD-1002",
+    "customer_id": "CUST-2",
+    "state": "SHIPPED",
+    "placed_on": "2026-07-19",
+    "total": "1450.00",
+    "days_since_delivery": null
+  },
+  {
+    "order_id": "ORD-1003",
+    "customer_id": "CUST-3",
+    "state": "PROCESSING",
+    "placed_on": "2026-07-28",
+    "total": "42.50",
+    "days_since_delivery": null
+  },
+  {
+    "order_id": "ORD-1004",
+    "customer_id": "CUST-4",
+    "state": "DELIVERED",
+    "placed_on": "2026-03-11",
+    "total": "89.00",
+    "days_since_delivery": 141
+  },
+  {
+    "order_id": "ORD-1005",
+    "customer_id": "CUST-5",
+    "state": "REFUNDED",
+    "placed_on": "2026-05-30",
+    "total": "310.00",
+    "days_since_delivery": 45
+  },
+  {
+    "order_id": "ORD-1006",
+    "customer_id": "CUST-6",
+    "state": "CANCELLED",
+    "placed_on": "2026-07-25",
+    "total": "1200.00",
+    "days_since_delivery": null
+  }
+]

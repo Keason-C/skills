@@ -1,0 +1,16 @@
+{
+  "ticket_id": "TCK-2002",
+  "category": "REFUND",
+  "priority": "P1_HIGH",
+  "sentiment": "ANGRY",
+  "confidence": 0.65,
+  "recommended_action": "AUTO_REFUND",
+  "escalated_to_human": true,
+  "injection_detected": false,
+  "stage": "ESCALATED",
+  "rationale": "Read from the ticket text: matched 1 REFUND signal(s), tone reads ANGRY. Disputed amount 1450.00 is above the 1000.00 threshold, so a human decides this one. AUTO_REFUND is a money-moving action, which a human always executes.",
+  "guards_fired": [
+    "amount",
+    "refund-execution"
+  ]
+}

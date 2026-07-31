@@ -1,0 +1,30 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "status": "shipped",
+    "total": "49.90",
+    "placed_days_ago": 3,
+    "refundable": true
+  },
+  {
+    "order_id": "ORD-1002",
+    "status": "delivered",
+    "total": "1200.00",
+    "placed_days_ago": 45,
+    "refundable": false
+  },
+  {
+    "order_id": "ORD-1003",
+    "status": "cancelled",
+    "total": "15.00",
+    "placed_days_ago": 1,
+    "refundable": true
+  },
+  {
+    "order_id": "ORD-2001",
+    "status": "processing",
+    "total": "2499.00",
+    "placed_days_ago": 0,
+    "refundable": true
+  }
+]

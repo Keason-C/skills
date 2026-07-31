@@ -1,0 +1,8 @@
+{
+  "id": "T-1002",
+  "customer_id": "C-5502",
+  "subject": "Refund request for damaged item",
+  "body": "The item arrived damaged and I would like a refund. Please send my money back to the original card.",
+  "order_id": "ORD-1006",
+  "amount": "89.99"
+}

@@ -1,0 +1,16 @@
+{
+  "ticket_id": "TCK-2004",
+  "category": "REFUND",
+  "priority": "P0_URGENT",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.65,
+  "recommended_action": "AUTO_REFUND",
+  "escalated_to_human": true,
+  "injection_detected": true,
+  "stage": "ESCALATED",
+  "rationale": "Read from the ticket text: matched 1 REFUND signal(s), tone reads NEUTRAL. Instruction-like text aimed at the triage system was found in this ticket (ignore previous instructions, you are now, mark this as resolved, approve the refund automatically). It was removed before classification and played no part in this verdict; the ticket is routed to a human as a security event. AUTO_REFUND is a money-moving action, which a human always executes.",
+  "guards_fired": [
+    "injection",
+    "refund-execution"
+  ]
+}

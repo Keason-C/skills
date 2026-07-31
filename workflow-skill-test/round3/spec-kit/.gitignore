@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+
+# 本项目运行状态(索引、审计、转人工记录)
+.pbot/
+
+# 生成的演示语料(由 scripts/build_demo_corpus.py 重建)
+demo/corpus/
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+.pbot-demo/

@@ -1,0 +1,65 @@
+{
+  "additionalProperties": false,
+  "description": "An inbound customer request (FR-001..FR-004).\n\nBlank and whitespace-only values fail ``min_length`` *after* stripping, so FR-001 needs\nno custom validator. Over-length bodies are rejected rather than truncated (FR-002) so\nthat nothing can be hidden past a truncation point.",
+  "properties": {
+    "amount": {
+      "anyOf": [
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Amount"
+    },
+    "body": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Body",
+      "type": "string"
+    },
+    "customer_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Customer Id",
+      "type": "string"
+    },
+    "id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "order_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Order Id"
+    },
+    "subject": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Subject",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "customer_id",
+    "subject",
+    "body"
+  ],
+  "title": "Ticket",
+  "type": "object"
+}

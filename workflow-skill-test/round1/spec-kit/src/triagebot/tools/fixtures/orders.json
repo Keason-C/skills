@@ -1,0 +1,32 @@
+{
+  "ORD-1001": {
+    "state": "DELIVERED",
+    "placed_on": "2026-07-01",
+    "delivered_on": "2026-07-08"
+  },
+  "ORD-1002": {
+    "state": "DELIVERED",
+    "placed_on": "2026-01-05",
+    "delivered_on": "2026-01-12"
+  },
+  "ORD-1003": {
+    "state": "SHIPPED",
+    "placed_on": "2026-07-20",
+    "delivered_on": null
+  },
+  "ORD-1004": {
+    "state": "PROCESSING",
+    "placed_on": "2026-07-28",
+    "delivered_on": null
+  },
+  "ORD-1005": {
+    "state": "CANCELLED",
+    "placed_on": "2026-06-15",
+    "delivered_on": null
+  },
+  "ORD-1006": {
+    "state": "DELIVERED",
+    "placed_on": "2026-07-10",
+    "delivered_on": "2026-07-15"
+  }
+}

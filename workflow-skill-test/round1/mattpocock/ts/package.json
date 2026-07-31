@@ -1,0 +1,24 @@
+{
+  "name": "triagebot-view",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validate and display a TriageBot verdict JSON file",
+  "type": "module",
+  "bin": {
+    "triagebot-view": "./src/bin.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "view": "tsx src/bin.ts"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

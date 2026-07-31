@@ -1,0 +1,11 @@
+298e892 Reflection: review, verification, and final scoring
+da22d7b Stream rows and use quote_identifier, per code review
+dea9a49 Reflection: execution and debugging phases
+a28fe00 Test the report boot path and type the CLI table lookup precisely
+ebcbd09 Document the validate command
+7260fef Add sqlite-utils validate command
+6e3f5c6 Assemble self-contained HTML validation reports
+76bb4fc Add TypeScript report renderer and esbuild bundle
+e757643 Add TypeScript report scaffolding and violation filtering logic
+a2ac358 Implement validate_table() against a JSON Schema
+99b6f53 Add jsonschema dependency and validation result types

@@ -1,0 +1,22 @@
+{
+  "ticket_id": "T-1001",
+  "category": "TECHNICAL",
+  "priority": "P2",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.84,
+  "recommended_action": "INVESTIGATE_TECHNICAL",
+  "escalated_to_human": false,
+  "rationale": "Classified as TECHNICAL; recommended action INVESTIGATE_TECHNICAL.\nClassifier reasoning: Matched 3 keyword(s) for TECHNICAL; sentiment read as NEUTRAL.\nOrder ORD-1001 is DELIVERED, delivered 23 day(s) ago.\nNo deterministic rule overrode the classification.",
+  "injection_detected": false,
+  "language": "EN",
+  "state": "AUTO_RESOLVED",
+  "state_path": [
+    "NEW",
+    "ENRICHED",
+    "CLASSIFIED",
+    "AUTO_RESOLVED"
+  ],
+  "guard_findings": [],
+  "retried": false,
+  "llm_calls": 1
+}

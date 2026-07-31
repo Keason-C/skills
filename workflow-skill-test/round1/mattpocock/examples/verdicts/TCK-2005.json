@@ -1,0 +1,13 @@
+{
+  "ticket_id": "TCK-2005",
+  "category": "BILLING",
+  "priority": "P3_LOW",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.95,
+  "recommended_action": "ROUTE_TO_BILLING",
+  "escalated_to_human": false,
+  "injection_detected": false,
+  "stage": "AUTO_RESOLVED",
+  "rationale": "Read from the ticket text: matched 3 BILLING signal(s), tone reads NEUTRAL.",
+  "guards_fired": []
+}

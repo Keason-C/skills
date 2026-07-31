@@ -1,0 +1,37 @@
+[
+  {
+    "category": "REFUND",
+    "policy_id": "POL-REFUND-01",
+    "canonical_action": "Issue refund to original payment method within 14 days of delivery",
+    "window_days": 14,
+    "summary": "Standard refund window is 14 days from delivery."
+  },
+  {
+    "category": "BILLING",
+    "policy_id": "POL-BILLING-01",
+    "canonical_action": "Verify the charge against the invoice and adjust if mismatched",
+    "window_days": 30,
+    "summary": "Billing disputes are reviewed within 30 days of the charge."
+  },
+  {
+    "category": "TECHNICAL",
+    "policy_id": "POL-TECH-01",
+    "canonical_action": "Collect reproduction steps and route to engineering support",
+    "window_days": 0,
+    "summary": "Technical issues are not refundable by default."
+  },
+  {
+    "category": "ACCOUNT",
+    "policy_id": "POL-ACCOUNT-01",
+    "canonical_action": "Verify identity before making any account change",
+    "window_days": 0,
+    "summary": "Account changes require identity verification."
+  },
+  {
+    "category": "OTHER",
+    "policy_id": "POL-OTHER-01",
+    "canonical_action": "Route to a human agent for manual assessment",
+    "window_days": 0,
+    "summary": "Uncategorised tickets get manual assessment."
+  }
+]

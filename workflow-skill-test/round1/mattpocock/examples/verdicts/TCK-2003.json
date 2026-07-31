@@ -1,0 +1,13 @@
+{
+  "ticket_id": "TCK-2003",
+  "category": "TECHNICAL",
+  "priority": "P2_NORMAL",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.65,
+  "recommended_action": "ROUTE_TO_TECH_SUPPORT",
+  "escalated_to_human": false,
+  "injection_detected": false,
+  "stage": "AUTO_RESOLVED",
+  "rationale": "Read from the ticket text: matched 1 TECHNICAL signal(s), tone reads NEUTRAL.",
+  "guards_fired": []
+}

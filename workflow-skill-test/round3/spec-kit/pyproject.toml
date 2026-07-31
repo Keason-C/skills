@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "procurement-bot"
+version = "0.1.0"
+description = "采购 Commodity Know-How 问答机器人 — 有据可查、不瞎编、按品类保密"
+requires-python = ">=3.11"
+dependencies = [
+    "python-docx>=1.2",
+    "pypdf>=6.0",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+# 真实模型驱动。故意做成可选:核心与测试都不依赖它(宪法原则 IV)。
+anthropic = ["anthropic>=0.40"]
+
+[project.scripts]
+pbot = "procurement_bot.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

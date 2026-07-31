@@ -1,0 +1,6 @@
+e0342bd REFLECTION.md: process log, scores, and the greenfield-vs-existing verdict
+7868fc5 Review fixes: dead return value, duplicated construction, stray constants
+d290d79 Document validate: CLI guide, Python API, reference, contributing
+679de67 The HTML report: a TypeScript UI, built and inlined into one file
+3557aff sqlite-utils validate - CLI command and JSON report
+9b324c4 Table.validate() - validate rows against a JSON Schema row schema

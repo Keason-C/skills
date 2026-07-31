@@ -1,0 +1,37 @@
+[
+  {
+    "category": "REFUND",
+    "refundable": true,
+    "window_days": 30,
+    "prescribed_action": "AUTO_REFUND",
+    "summary": "Orders delivered within 30 days are refunded in full. The refund is prepared automatically but always executed by a human."
+  },
+  {
+    "category": "BILLING",
+    "refundable": true,
+    "window_days": 60,
+    "prescribed_action": "ROUTE_TO_BILLING",
+    "summary": "Billing disputes are investigated by the billing team; adjustments are issued as account credit, not as refunds."
+  },
+  {
+    "category": "TECHNICAL",
+    "refundable": false,
+    "window_days": 0,
+    "prescribed_action": "ROUTE_TO_TECH_SUPPORT",
+    "summary": "Technical faults are fixed, not refunded. A refund is only considered after support has failed to resolve the fault."
+  },
+  {
+    "category": "ACCOUNT",
+    "refundable": false,
+    "window_days": 0,
+    "prescribed_action": "ROUTE_TO_ACCOUNT_TEAM",
+    "summary": "Account and access problems carry no refund entitlement."
+  },
+  {
+    "category": "OTHER",
+    "refundable": false,
+    "window_days": 0,
+    "prescribed_action": "ESCALATE_TO_HUMAN",
+    "summary": "Uncategorised requests have no policy of their own and are read by a human."
+  }
+]

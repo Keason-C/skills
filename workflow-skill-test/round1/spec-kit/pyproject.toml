@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "triagebot"
+version = "1.0.0"
+description = "Customer support ticket triage agent: the LLM proposes, deterministic rules decide."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+anthropic = ["anthropic>=0.40"]
+
+[project.scripts]
+triagebot = "triagebot.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/triagebot"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

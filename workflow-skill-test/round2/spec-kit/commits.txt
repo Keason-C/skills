@@ -1,0 +1,7 @@
+73d5185 Add sqlite-utils validate: JSON Schema validation with JSON and HTML reports
+ecccfb8 Spec Kit: analyze findings and remediation
+5a683d6 Spec Kit: 56-task breakdown organized by user story
+e12c0fe Spec Kit: plan, research decision record, data model, contracts, quickstart
+48913e4 Spec Kit: integrate clarification answers into spec
+c123365 Spec Kit: clarify phase coverage scan and question queue
+635b0f7 Spec Kit: constitution v1.0.0 and feature spec for data validation

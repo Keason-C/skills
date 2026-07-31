@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "ActionKind": {
+      "enum": [
+        "ANSWER_QUESTION",
+        "REQUEST_INFO",
+        "APPROVE_REFUND",
+        "DENY_REFUND",
+        "ISSUE_STORE_CREDIT",
+        "RESET_CREDENTIALS",
+        "INVESTIGATE_TECHNICAL",
+        "ROUTE_TO_HUMAN"
+      ],
+      "title": "ActionKind",
+      "type": "string"
+    },
+    "Category": {
+      "description": "Triage category (FR-010).",
+      "enum": [
+        "BILLING",
+        "REFUND",
+        "TECHNICAL",
+        "ACCOUNT",
+        "OTHER"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "GuardFinding": {
+      "additionalProperties": false,
+      "description": "A record that one deterministic rule fired (FR-011, FR-020).",
+      "properties": {
+        "detail": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "field": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Field",
+          "type": "string"
+        },
+        "final": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Final",
+          "type": "string"
+        },
+        "proposed": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed"
+        },
+        "rule": {
+          "$ref": "#/$defs/GuardRule"
+        }
+      },
+      "required": [
+        "rule",
+        "field",
+        "final",
+        "detail"
+      ],
+      "title": "GuardFinding",
+      "type": "object"
+    },
+    "GuardRule": {
+      "description": "Identifies which deterministic rule produced a finding.",
+      "enum": [
+        "AMOUNT_THRESHOLD",
+        "LOW_CONFIDENCE",
+        "REFUND_POLICY",
+        "PROMPT_INJECTION",
+        "TERMINAL_ACTION",
+        "PRIORITY_DERIVATION",
+        "UNSUPPORTED_LANGUAGE"
+      ],
+      "title": "GuardRule",
+      "type": "string"
+    },
+    "Language": {
+      "enum": [
+        "EN",
+        "ZH",
+        "OTHER"
+      ],
+      "title": "Language",
+      "type": "string"
+    },
+    "Priority": {
+      "description": "Priority band (FR-010a).\n\nP0 = service unavailable or security event; P1 = blocks a core user action;\nP2 = ordinary problem; P3 = advice or enquiry.",
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "Sentiment": {
+      "enum": [
+        "ANGRY",
+        "FRUSTRATED",
+        "NEUTRAL",
+        "POSITIVE"
+      ],
+      "title": "Sentiment",
+      "type": "string"
+    },
+    "TriageState": {
+      "description": "Explicit processing states (FR-022). Transitions live in ``states.py``.",
+      "enum": [
+        "NEW",
+        "ENRICHED",
+        "CLASSIFIED",
+        "AUTO_RESOLVED",
+        "ESCALATED"
+      ],
+      "title": "TriageState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The final decision for a ticket.\n\nThe cross-field validators below are what stop the guards being quietly bypassed: even\na hand-constructed ``TriageResult`` that violates a rule fails validation.",
+  "properties": {
+    "category": {
+      "$ref": "#/$defs/Category"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "escalated_to_human": {
+      "title": "Escalated To Human",
+      "type": "boolean"
+    },
+    "guard_findings": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/GuardFinding"
+      },
+      "title": "Guard Findings",
+      "type": "array"
+    },
+    "injection_detected": {
+      "title": "Injection Detected",
+      "type": "boolean"
+    },
+    "language": {
+      "$ref": "#/$defs/Language"
+    },
+    "llm_calls": {
+      "maximum": 2,
+      "minimum": 1,
+      "title": "Llm Calls",
+      "type": "integer"
+    },
+    "priority": {
+      "$ref": "#/$defs/Priority"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "recommended_action": {
+      "$ref": "#/$defs/ActionKind"
+    },
+    "retried": {
+      "title": "Retried",
+      "type": "boolean"
+    },
+    "sentiment": {
+      "$ref": "#/$defs/Sentiment"
+    },
+    "state": {
+      "$ref": "#/$defs/TriageState"
+    },
+    "state_path": {
+      "items": {
+        "$ref": "#/$defs/TriageState"
+      },
+      "minItems": 4,
+      "title": "State Path",
+      "type": "array"
+    },
+    "ticket_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Ticket Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "category",
+    "priority",
+    "sentiment",
+    "confidence",
+    "recommended_action",
+    "escalated_to_human",
+    "rationale",
+    "injection_detected",
+    "language",
+    "state",
+    "state_path",
+    "retried",
+    "llm_calls"
+  ],
+  "title": "TriageResult",
+  "type": "object"
+}

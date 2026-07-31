@@ -1,0 +1,43 @@
+{
+  "REFUND": {
+    "window_days": 30,
+    "permitted_actions": [
+      "REQUEST_INFO",
+      "APPROVE_REFUND",
+      "ISSUE_STORE_CREDIT",
+      "ANSWER_QUESTION"
+    ],
+    "requires_human_approval": true,
+    "summary": "Refunds are available within 30 days of delivery. A human approves every refund; agents may request information or offer store credit as alternatives."
+  },
+  "BILLING": {
+    "window_days": 60,
+    "permitted_actions": [
+      "ANSWER_QUESTION",
+      "REQUEST_INFO",
+      "ISSUE_STORE_CREDIT"
+    ],
+    "requires_human_approval": true,
+    "summary": "Billing disputes may be raised within 60 days of the charge. Adjustments require human approval."
+  },
+  "TECHNICAL": {
+    "window_days": 90,
+    "permitted_actions": [
+      "INVESTIGATE_TECHNICAL",
+      "REQUEST_INFO",
+      "ANSWER_QUESTION"
+    ],
+    "requires_human_approval": false,
+    "summary": "Technical faults are investigated for 90 days after delivery. No monetary remedy is offered on this path."
+  },
+  "ACCOUNT": {
+    "window_days": 365,
+    "permitted_actions": [
+      "RESET_CREDENTIALS",
+      "REQUEST_INFO",
+      "ANSWER_QUESTION"
+    ],
+    "requires_human_approval": false,
+    "summary": "Account access issues are handled at any time within a year. No monetary remedy is offered on this path."
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "Action": {
+      "description": "The single next step a Verdict recommends. A closed set \u2014 never free text.",
+      "enum": [
+        "AUTO_REFUND",
+        "REQUEST_MORE_INFO",
+        "ROUTE_TO_BILLING",
+        "ROUTE_TO_TECH_SUPPORT",
+        "ROUTE_TO_ACCOUNT_TEAM",
+        "SEND_SELF_SERVE_GUIDE",
+        "ESCALATE_TO_HUMAN"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "Category": {
+      "description": "What kind of problem a Ticket is about.",
+      "enum": [
+        "BILLING",
+        "REFUND",
+        "TECHNICAL",
+        "ACCOUNT",
+        "OTHER"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "Priority": {
+      "description": "How urgently a human should get to a Ticket. Always computed by Guards.",
+      "enum": [
+        "P0_URGENT",
+        "P1_HIGH",
+        "P2_NORMAL",
+        "P3_LOW"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "Sentiment": {
+      "description": "How the customer sounds.",
+      "enum": [
+        "ANGRY",
+        "FRUSTRATED",
+        "NEUTRAL",
+        "SATISFIED"
+      ],
+      "title": "Sentiment",
+      "type": "string"
+    },
+    "TriageStage": {
+      "description": "Where a Ticket has got to.",
+      "enum": [
+        "NEW",
+        "ENRICHED",
+        "CLASSIFIED",
+        "AUTO_RESOLVED",
+        "ESCALATED"
+      ],
+      "title": "TriageStage",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The Verdict: the rules-approved decision about a Ticket.",
+  "properties": {
+    "category": {
+      "$ref": "#/$defs/Category"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "escalated_to_human": {
+      "title": "Escalated To Human",
+      "type": "boolean"
+    },
+    "guards_fired": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Guards Fired",
+      "type": "array"
+    },
+    "injection_detected": {
+      "title": "Injection Detected",
+      "type": "boolean"
+    },
+    "priority": {
+      "$ref": "#/$defs/Priority"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "recommended_action": {
+      "$ref": "#/$defs/Action"
+    },
+    "sentiment": {
+      "$ref": "#/$defs/Sentiment"
+    },
+    "stage": {
+      "$ref": "#/$defs/TriageStage"
+    },
+    "ticket_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Ticket Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "category",
+    "priority",
+    "sentiment",
+    "confidence",
+    "recommended_action",
+    "escalated_to_human",
+    "injection_detected",
+    "stage",
+    "rationale"
+  ],
+  "title": "TriageResult",
+  "type": "object"
+}

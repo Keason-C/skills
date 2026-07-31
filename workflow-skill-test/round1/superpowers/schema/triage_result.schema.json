@@ -1,0 +1,145 @@
+{
+  "$defs": {
+    "Category": {
+      "enum": [
+        "BILLING",
+        "REFUND",
+        "TECHNICAL",
+        "ACCOUNT",
+        "OTHER"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "GuardCode": {
+      "description": "Every deterministic rule that fired while triaging a ticket.",
+      "enum": [
+        "AMOUNT_THRESHOLD",
+        "LOW_CONFIDENCE",
+        "PROMPT_INJECTION",
+        "P0_ALWAYS_HUMAN",
+        "MISSING_ORDER_EVIDENCE",
+        "UNSUPPORTED_LANGUAGE",
+        "REFUND_POLICY_OVERRIDE",
+        "REFUND_POLICY_MISSING"
+      ],
+      "title": "GuardCode",
+      "type": "string"
+    },
+    "Language": {
+      "enum": [
+        "en",
+        "zh",
+        "other"
+      ],
+      "title": "Language",
+      "type": "string"
+    },
+    "Priority": {
+      "description": "P0 = outage or security event. P1 = blocks a core user operation.\nP2 = ordinary issue. P3 = enquiry or suggestion.",
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "Sentiment": {
+      "enum": [
+        "ANGRY",
+        "FRUSTRATED",
+        "NEUTRAL",
+        "SATISFIED"
+      ],
+      "title": "Sentiment",
+      "type": "string"
+    },
+    "TriageState": {
+      "enum": [
+        "NEW",
+        "ENRICHED",
+        "CLASSIFIED",
+        "AUTO_RESOLVED",
+        "ESCALATED"
+      ],
+      "title": "TriageState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The final, deterministic conclusion for a ticket.",
+  "properties": {
+    "category": {
+      "$ref": "#/$defs/Category"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "escalated_to_human": {
+      "title": "Escalated To Human",
+      "type": "boolean"
+    },
+    "final_state": {
+      "$ref": "#/$defs/TriageState"
+    },
+    "guards_triggered": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/GuardCode"
+      },
+      "title": "Guards Triggered",
+      "type": "array"
+    },
+    "injection_detected": {
+      "default": false,
+      "title": "Injection Detected",
+      "type": "boolean"
+    },
+    "language": {
+      "$ref": "#/$defs/Language",
+      "default": "en"
+    },
+    "priority": {
+      "$ref": "#/$defs/Priority"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "recommended_action": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Recommended Action",
+      "type": "string"
+    },
+    "sentiment": {
+      "$ref": "#/$defs/Sentiment"
+    },
+    "ticket_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Ticket Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "category",
+    "priority",
+    "sentiment",
+    "confidence",
+    "recommended_action",
+    "escalated_to_human",
+    "rationale",
+    "final_state"
+  ],
+  "title": "TriageResult",
+  "type": "object"
+}

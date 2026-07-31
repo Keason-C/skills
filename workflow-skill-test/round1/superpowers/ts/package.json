@@ -1,0 +1,21 @@
+{
+  "name": "triagebot-view",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "zod-validated viewer for TriageBot triage results",
+  "license": "ISC",
+  "scripts": {
+    "test": "vitest run",
+    "view": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

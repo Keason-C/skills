@@ -1,0 +1,37 @@
+{
+  "ticket_id": "T-1002",
+  "category": "REFUND",
+  "priority": "P1",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.73,
+  "recommended_action": "APPROVE_REFUND",
+  "escalated_to_human": true,
+  "rationale": "Classified as REFUND; recommended action APPROVE_REFUND.\nClassifier reasoning: Matched 2 keyword(s) for REFUND; sentiment read as NEUTRAL.\nOrder ORD-1006 is DELIVERED, delivered 16 day(s) ago.\nRefund policy applied: Refunds are available within 30 days of delivery. A human approves every refund; agents may request information or offer store credit as alternatives.\nDeterministic rules that fired:\n- [TERMINAL_ACTION] Recommended action APPROVE_REFUND is terminal: it moves money or denies a customer request. It is emitted as a recommendation, but a human executes it.\n- [PRIORITY_DERIVATION] Priority is derived from the ticket, not adopted from the classifier: it proposed P2, the derivation matrix yields P1.",
+  "injection_detected": false,
+  "language": "EN",
+  "state": "ESCALATED",
+  "state_path": [
+    "NEW",
+    "ENRICHED",
+    "CLASSIFIED",
+    "ESCALATED"
+  ],
+  "guard_findings": [
+    {
+      "rule": "TERMINAL_ACTION",
+      "field": "escalated_to_human",
+      "proposed": "False",
+      "final": "True",
+      "detail": "Recommended action APPROVE_REFUND is terminal: it moves money or denies a customer request. It is emitted as a recommendation, but a human executes it."
+    },
+    {
+      "rule": "PRIORITY_DERIVATION",
+      "field": "priority",
+      "proposed": "P2",
+      "final": "P1",
+      "detail": "Priority is derived from the ticket, not adopted from the classifier: it proposed P2, the derivation matrix yields P1."
+    }
+  ],
+  "retried": false,
+  "llm_calls": 1
+}

@@ -1,0 +1,37 @@
+{
+  "ticket_id": "T-1003",
+  "category": "ACCOUNT",
+  "priority": "P0",
+  "sentiment": "NEUTRAL",
+  "confidence": 0.73,
+  "recommended_action": "RESET_CREDENTIALS",
+  "escalated_to_human": true,
+  "rationale": "Classified as ACCOUNT; recommended action RESET_CREDENTIALS.\nClassifier reasoning: Matched 2 keyword(s) for ACCOUNT; sentiment read as NEUTRAL.\nOrder ORD-1003 is SHIPPED.\nDeterministic rules that fired:\n- [PROMPT_INJECTION] Ticket text contains a suspected instruction-override attempt (ignore_previous_instructions). The text was withheld from the classifier and the ticket is escalated as a security event.\n- [PRIORITY_DERIVATION] Priority is derived from the ticket, not adopted from the classifier: it proposed P2, the derivation matrix yields P0.",
+  "injection_detected": true,
+  "language": "EN",
+  "state": "ESCALATED",
+  "state_path": [
+    "NEW",
+    "ENRICHED",
+    "CLASSIFIED",
+    "ESCALATED"
+  ],
+  "guard_findings": [
+    {
+      "rule": "PROMPT_INJECTION",
+      "field": "escalated_to_human",
+      "proposed": "False",
+      "final": "True",
+      "detail": "Ticket text contains a suspected instruction-override attempt (ignore_previous_instructions). The text was withheld from the classifier and the ticket is escalated as a security event."
+    },
+    {
+      "rule": "PRIORITY_DERIVATION",
+      "field": "priority",
+      "proposed": "P2",
+      "final": "P0",
+      "detail": "Priority is derived from the ticket, not adopted from the classifier: it proposed P2, the derivation matrix yields P0."
+    }
+  ],
+  "retried": false,
+  "llm_calls": 1
+}

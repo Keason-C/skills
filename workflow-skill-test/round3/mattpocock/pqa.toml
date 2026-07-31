@@ -1,0 +1,6 @@
+# 采购品类知识问答 —— 配置
+knowledge_root = "demo/knowledge"
+roster = "demo/roster.csv"
+runtime = ".runtime"
+fallback_employee_id = "9001"   # 兜底接收人:没人认领的品类的问题转给他
+restricted_dir = "保密"          # 定密的唯一判据:文档在不在这个文件夹下

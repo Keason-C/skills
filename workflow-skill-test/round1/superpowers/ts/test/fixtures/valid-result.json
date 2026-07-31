@@ -1,0 +1,16 @@
+{
+  "category": "REFUND",
+  "confidence": 0.7,
+  "escalated_to_human": false,
+  "final_state": "AUTO_RESOLVED",
+  "guards_triggered": [
+    "REFUND_POLICY_OVERRIDE"
+  ],
+  "injection_detected": false,
+  "language": "en",
+  "priority": "P2",
+  "rationale": "Driver: MockDriver matched ['refund'] keyword(s) for REFUND; sentiment cues suggest NEUTRAL Order ORD-1001 is shipped. [REFUND_POLICY_OVERRIDE] recommended_action was overridden by refund policy / \u5efa\u8bae\u52a8\u4f5c\u5df2\u88ab\u9000\u6b3e\u653f\u7b56\u8986\u76d6.",
+  "recommended_action": "Issue refund to original payment method within 14 days of delivery",
+  "sentiment": "NEUTRAL",
+  "ticket_id": "T-1001"
+}
