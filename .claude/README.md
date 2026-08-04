@@ -1,11 +1,18 @@
-# Repo-default skill injection — test results
+# Getting third-party skills into every session — two approaches, tested
 
-This directory injects a third-party skill plugin into every session opened on
-this repo **via configuration only**. No skill files are vendored into the repo.
+Goal: make Matt Pocock's skills available to sessions on this repo — including
+to **subagents** — reliably enough to drive an issue loop in a fresh cloud
+sandbox.
 
-## What is configured
+Two approaches were tested against Claude Code 2.1.221 using headless
+(`claude -p`) sessions. **Approach B is what this repo ships.**
 
-`.claude/settings.json` declares the marketplace and enables the plugin:
+---
+
+## Approach A — plugin injected via project config
+
+`.claude/settings.json` declares the marketplace and enables the plugin; no
+skill files live in the repo:
 
 ```json
 {
@@ -20,76 +27,107 @@ this repo **via configuration only**. No skill files are vendored into the repo.
 available for this repository — typically used in repository
 `.claude/settings.json` to ensure team members have required plugin sources."
 
-`.claude/bootstrap-plugins.sh` runs on `SessionStart` and materializes the
-plugin. It is idempotent and a no-op once the plugin is cached.
+### What worked
 
-## Findings
+Once bootstrapped, skills appear as `mattpocock-skills:<name>`, and **subagents
+can invoke them**. A `general-purpose` subagent called
+`Skill{skill: "mattpocock-skills:tdd"}` and reported content only present in the
+skill body (the term *seam*, the files `tests.md` / `mocking.md`, the
+anti-pattern *horizontal slicing*).
 
-Tested against Claude Code 2.1.221 with headless (`claude -p`) sessions.
+### What broke
 
-### 1. Injection works — skills appear as `mattpocock-skills:<name>`
+1. **Only 9 of 22 skills are reachable.** The other 13 set
+   `disable-model-invocation: true` — including every issue-loop skill
+   (`to-tickets`, `triage`, `to-spec`, `implement`, `wayfinder`). Subagents get:
 
-Once bootstrapped, a fresh session lists the plugin's model-invocable skills:
+   ```
+   Skill mattpocock-skills:to-tickets cannot be used with Skill tool
+   due to disable-model-invocation
+   ```
+
+   They work only as slash commands typed in a user turn.
+
+2. **The project must be trusted.** With `hasTrustDialogAccepted: false`,
+   project-scoped `extraKnownMarketplaces` is ignored entirely — three
+   consecutive fresh sessions registered nothing. Fresh cloud containers start
+   untrusted.
+
+3. **It does not converge in session 1.** Reconciliation is lazy and staged
+   across sessions (register marketplace → record install → materialize files →
+   skills visible), and it can stall with `installed_plugins.json` recording an
+   install whose files were never written; later sessions then skip it. A
+   `SessionStart` hook makes convergence deterministic but still runs after the
+   skill listing is built, so session 1 never sees the skills. Only a pre-warm
+   in the **environment setup script** fixes session 1:
+
+   ```sh
+   claude plugin marketplace add mattpocock/skills --scope project
+   claude plugin install mattpocock-skills@mattpocock --scope project
+   ```
+
+---
+
+## Approach B — local install + dynamic routing  ← shipped
+
+Install the skills into the repo, park them where nothing auto-registers them,
+and expose **one** router skill that hands out paths.
 
 ```
-mattpocock-skills:tdd            mattpocock-skills:code-review
-mattpocock-skills:diagnosing-bugs mattpocock-skills:codebase-design
-mattpocock-skills:prototype       mattpocock-skills:domain-modeling
-mattpocock-skills:research        mattpocock-skills:resolving-merge-conflicts
-mattpocock-skills:grilling
+.claude/skills/mattpocock/SKILL.md   # the only registered skill — index + how to load
+.claude/mp-skills/<name>/SKILL.md    # 41 skill bodies, not registered
+.claude/reroute-skills.sh            # re-applies the layout after an upstream update
+skills-lock.json                     # written by `npx skills`, enables updates
 ```
 
-### 2. Subagents CAN invoke injected skills
-
-A `general-purpose` subagent spawned via the Agent tool called
-`Skill{skill: "mattpocock-skills:tdd"}` successfully and reported content only
-present in the skill body (the term *seam*, the files `tests.md` / `mocking.md`,
-the anti-pattern *horizontal slicing*). Plugin skills are inherited by
-subagents; no extra wiring is needed.
-
-### 3. Subagents CANNOT invoke `disable-model-invocation: true` skills
-
-9 of the plugin's 22 skills are model-invocable. The other 13 — including the
-issue-loop ones (`to-tickets`, `triage`, `to-spec`, `implement`, `wayfinder`,
-`setup-matt-pocock-skills`) — set `disable-model-invocation: true`. A subagent
-calling them through the Skill tool gets:
-
-```
-Skill mattpocock-skills:to-tickets cannot be used with Skill tool
-due to disable-model-invocation
-```
-
-They still work as slash commands typed in a user turn
-(`/mattpocock-skills:to-tickets` loaded fine and its 5-step process was
-recited). To use one inside a subagent, the orchestrator must read the
-`SKILL.md` and pass its content in the subagent prompt.
-
-### 4. The project must be trusted
-
-With `hasTrustDialogAccepted: false` for the working directory, project-scoped
-`extraKnownMarketplaces` is ignored entirely — three consecutive fresh sessions
-registered nothing. A freshly created cloud container starts untrusted, so this
-gate must be cleared before config injection does anything.
-
-### 5. Config alone does not converge in the first session
-
-Passive reconciliation from `settings.json` is lazy and staged across sessions
-(register marketplace → record install → materialize files → skills visible),
-and it can stall in a half-installed state where `installed_plugins.json`
-records an install whose files were never written; later sessions then skip it.
-
-The `SessionStart` hook makes convergence deterministic, but it still runs after
-the skill listing is built, so **session 1 does not see the skills — session 2
-onward does.**
-
-For an issue loop where each issue gets a fresh container and a single session,
-run the pre-warm in the **environment setup script** rather than a SessionStart
-hook, so the plugin is cached before the session starts:
+Installed with:
 
 ```sh
-claude plugin marketplace add mattpocock/skills --scope project
-claude plugin install mattpocock-skills@mattpocock --scope project
+npx skills@latest add mattpocock/skills --skill '*' --agent claude-code --copy -y
+.claude/reroute-skills.sh
 ```
 
-Pre-warmed this way, the very next fresh session answers `YES` to having the
-skills — session 1 works.
+The router tells the agent the bodies live at `.claude/mp-skills/<name>/SKILL.md`
+and that loading one means `Read`-ing it and following it verbatim — for itself,
+or by handing the path to a subagent.
+
+### Results
+
+| | Approach A (plugin) | Approach B (routing) |
+|---|---|---|
+| Subagent can reach `disable-model-invocation` skills | **no** | **yes** |
+| Skills reachable | 9 of 22 | 41 of 41 |
+| Works in session 1 of a cold container | no (needs pre-warm) | **yes** |
+| Works untrusted | no | **yes** |
+| Needs `.claude/settings.json` | yes | **no config at all** |
+| Needs network at session start | yes | no (files are in the repo) |
+| Registered skill entries | 9 | 1 |
+
+The decisive test, run **cold, untrusted, with `.claude/settings.json` deleted
+and `~/.claude/plugins` wiped**: asked for a triage in a subagent, the subagent
+called `Skill{skill: "mattpocock", args: "triage …"}`, read
+`.claude/mp-skills/triage/SKILL.md`, and applied it — reciting the skill's own
+label vocabulary (`bug`/`enhancement` × `needs-triage`, `needs-info`,
+`ready-for-agent`, `ready-for-human`, `wontfix`) and the one-category-one-state
+rule. The same shape worked for `to-tickets`, which recited its 5-step process
+and the *expand–contract* sequencing rule for wide refactors, then produced
+tickets with blocking edges.
+
+Because routing loads skills with `Read` rather than the Skill tool,
+`disable-model-invocation` never applies. That flag is the single biggest reason
+Approach A cannot drive an issue loop.
+
+### Cost
+
+The router is ~7 KB always-on (41 indexed rows) and replaces 17 registered
+entries; the 41 bodies total ~167 KB and are read only on demand. Listed skills
+went 43 → 27.
+
+### Maintenance
+
+```sh
+npx skills update          # pulls upstream changes into .claude/skills/
+.claude/reroute-skills.sh  # moves them back to .claude/mp-skills/ and rebuilds the index
+```
+
+`reroute-skills.sh` is idempotent, so it is safe to run any time.
