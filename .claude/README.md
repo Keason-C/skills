@@ -21,6 +21,21 @@ agent directory, which is what makes them survive a fresh clone.
 Pull upstream changes with `npx skills update`; `skills-lock.json` at the repo root pins
 the content hash of each skill.
 
+## Cloud environment setup script
+
+Nothing is needed — the skills are committed, so a cloud session gets them from the clone.
+Leave the environment's **Setup script** box empty.
+
+The alternative, if you ever want the skills fetched fresh instead of committed, is to put
+the `npx skills add` command above into that box (it runs before Claude Code launches, so
+the skills are on disk in time). Three caveats: it needs **Full** network access for the
+npm registry and GitHub; it adds ~5s warm / ~30s cold to every session start; and the
+fetched files land as untracked changes in `git status` every time.
+
+`npx skills experimental_install`, which restores from `skills-lock.json` alone, is not a
+substitute — it ignores agent scoping and writes to `.agents/skills/`, which Claude Code
+does not read.
+
 ## Why vendored and not the plugin
 
 The plugin route — `extraKnownMarketplaces` + `enabledPlugins` in `.claude/settings.json` —
