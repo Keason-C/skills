@@ -10,7 +10,7 @@ zf-*/
 
 # Tracked on purpose — cloud sessions clone this repo fresh, so anything the
 # skills need at startup has to be committed.
-#   .claude/     — plugin/marketplace config read at session start
-#   .skills-doc/ — per-repo skill config (issue tracker, triage labels, contexts)
+#   .claude/skills/   — project skills, loaded at session start
+#   skills-lock.json  — pins their upstream versions (npx skills update)
 !.claude/
-!.skills-doc/
+!skills-lock.json
