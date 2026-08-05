@@ -7,3 +7,5 @@ work-spec/
 
 # Company-internal (ZF) skills
 zf-*/
+
+dump.rdb
