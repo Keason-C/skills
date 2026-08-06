@@ -132,3 +132,59 @@
   * A诚实: 列5处偏离+证明2残留present非静默丢+达标即停检查点(A+B不达标才进C,有数字)
   * 基线1027过复验中
 - A范围纪律张力: 单一目标但14文件~300行,review负担最重。coherent非散churn,但远超"small reviewable"。
+
+## Round 4 — S4 接手烂摊子(you-get 补测试+安全清理)（2026-08-06 ~02:40 起）
+- 目标库: soimort/you-get commit 049548f (~14.5k行 Python)。烂摊子确凿: common.py 1886行上帝模块/50函数/13裸except; 仅4测试文件且全打网络(离线无安全网); CI弱(flake8语法+网络unittest); 纯逻辑函数(match1/parse_host/escape_file_path/url_to_module等)零离线覆盖; 安全靶escape_file_path(319)只换/\*?不处理../控制字符/保留名。
+- 选库过程: 私有仓cops/sourcing有敏感,公开报告会暴露→选开源。you-get经典烂摊子,离线纯函数可验证。
+- 三副本 round4/{A,B,C} 同commit隔离,各venv装-e .+pytest,分支round4-hardening,import验证OK。
+- 任务=补离线测试兜底+安全清理(不改行为,不删现有网络测试,不拆god-module,不加运行时依赖)。
+- 规划Opus: A(matt grilling)=ae0ec8f9f5806f745 | B(裸)=ab88e3c82c7957536 | C(superpowers)=ad3a98fd01897fac8
+- 我扮刚接手的维护者(懂Python但怕改回归);答问只出S4.md
+
+### R4 规划第1轮全到齐(质感都高)
+- [02:50] A 5问带推荐: grounding最细(13except按行/文件名不一致委托/legitimize 82vs[:80] quirk)。已答:characterize-first/文件名硬化=唯一改动/except不改本pass文档留后续/测试面+load_cookies/网络测试打marker。
+- [02:52] B 5问: **额外发现common.py:23 import时重绑sys.stdout破坏pytest(复现)+62裸except+无shell=True**。已答:同A+line-23选(b)测试基建解决别碰生产码。
+- [02:55] C 4问: 安全sink查最全(无os.system/shell/eval/exec,launch_player shlex.split无注入面),复现line-23,把安全收敛到except+文件名。**C独立判断:提议except当headline、评估文件名"基本安全"**——为公平,维护者统一裁定文件名硬化=唯一sanctioned改动(与A/B同口径),C收敛。
+- 三家收敛到可比范围: 离线characterization测试网+文件名硬化(唯一改动,证明恶意中和+正常不变)+except只characterize文档+hands-off line-23+不拆god-module+网络测试重分类不删。
+- 累计提问R4: A5 B5 C4。三家均真读代码+实测,grounding都高;B/C复现line-23,A未提但抓到别的quirk。
+
+### R4 B规划完成+转实现
+- [03:00 UTC] B规划完成 commit 6e9bf7a: PLAN.md+TICKETS.md(7票)。T1 conftest shim(不碰line23)/T2-5离线characterization测试网(bug-for-bug钉quirk)/T6 legitimize硬化(唯一改动+正常标题golden护栏)/T7裸except延后已写规格。make test-offline入口,网络测试opt-in skip不删。代码未动(diff对基线空)。
+- [03:00 UTC] B实现启动 Sonnet aa58240feddd21eb4: T1→T5离线网→T6安全,守约束(离线跑绿/不删网络测试/不碰line23/不narrow except/无运行时依赖/Python3.8)。硬上限4h。
+
+### R4 C设计审批
+- [03:05 UTC] C设计文档 commit 793ac3e(brainstorming→design→spec-review闸门)。离线characterization网+conftest处理line-23,legitimize硬化(剥C0/DEL控制字符跨OS/Windows保留名仅Win分支保POSIX字节不变/纯点空→"_"),显式列行为增量+风险缓解。裁判审批3问(三增量接受但POSIX剥控制字符须golden正常语料证零漂移/占位符"_"/测试网覆盖不可信输入解析路径含load_cookies .txt)。C转writing-plans。
+- 状态: A写spec/tickets中(最慢) | B实现中(aa58240) | C writing-plans中
+
+### R4 A规划完成+转实现
+- [03:10 UTC] A规划完成 commit ee3fb0f: SPEC+5ADR+8票(characterization-first)。亮点:每票嵌锁定commit实跑的ground-truth输出(match1 str/list,legitimize[:80],parse_host('8080')→('0.0.0.0',8080));tripwire内建依赖图(安全票07被characterization票03阻塞)。**A刻意排除Windows保留名(保持最小可证明只碰病态输入)——比B/C保守**。skill痕迹合格。
+- [03:10 UTC] A实现启动 Sonnet afa00d6224097ef7d: implement/tdd,01harness→02-06characterize→07安全→08 except清单,守约束。硬上限4h。
+- 状态: A实现中(afa00d) | B实现中(aa58240) | C writing-plans中
+- 三家安全修复范围分化(均在sanctioned内): A最小(仅纯点/空→'_',排除Windows保留名); B/C更周全(含控制字符剥离+Windows保留名)。记评分。
+
+### R4 三家全部转实现(规划收官)
+- [03:15 UTC] C规划完成 commits 793ac3e/dc5d86e/3ca43ca: design+4阶段plan(A conftest基建/B未改代码characterize全绿/C唯一legitimize硬化TDD零漂移golden/D延后文档)。**C预先dry-run硬化函数:正常语料30case零漂移+恶意中和,计划无猜值**。唯一改util/fs.py。skill痕迹合格。
+- [03:15 UTC] C实现启动 Sonnet a85a2fc7ddb486dee: executing-plans,PhaseA→D,守约束。硬上限4h。
+- 三家实现并行: A=afa00d6224097ef7d(implement/tdd) | B=aa58240feddd21eb4(无skill) | C=a85a2fc7ddb486dee(executing-plans)
+- 规划提问R4总计: A5 B5 C4。三家均characterize-first收敛可比范围;安全修复A最小(排Windows保留名)B/C更全。
+
+### R4 B实现完成+裁判亲手验收(全通过)
+- [03:15 UTC] B实现完成 6票(T7延后)。裁判验收:
+  * make test-offline 88过OK; 断网(block socket)后90过+51subtests真离线✓
+  * 亲手对抗legitimize: ..→_ .→_ ...→_ 空→_ 控制\x1f→剥 null\x00→剥 CON→_CON nul.txt→_nul.txt 尾点name.→name 全中和; ../../etc/passwd→.-..-etc-passwd无穿越✓
+  * 正常标题(中文/日文/空格/标点/emoji)B-HEAD与基线逐字节一致(零漂移)✓
+  * diff净: 生产仅fs.py(62行)+common.py(5行), **line-23未碰**, tests/test.py仅+17skipUnless无删断言✓
+  * tripwire真: 篡改pin→套件FAILED4处, 还原→OK✓
+  * 小note: 纯空格名linux未中和(留'   ',良性非安全)
+  * 改了SECURITY.md(+29文档)、Makefile(+9 test-offline入口)
+
+### R4 C实现完成+裁判亲手验收(全通过)
+- [03:15 UTC] C实现完成 10任务13commit(PhaseA-D)。裁判验收:
+  * pytest tests/offline 86过; 断网跑88过(含2预存)真离线✓
+  * 亲手对抗legitimize: ..→_ .→_ ...→_ 空→_ 控制/null剥 CON→_CON nul.txt→_nul.txt 关键恶意名全中和✓; 正常标题字节不变✓
+  * **scope最外科**: 生产仅fs.py(32行), common.py diff=0(line-23+escape_file_path都没动), tests无删✓
+  * tripwire真: 篡改pin→FAILED, 还原→过✓
+  * Phase B闸门: 57过on未改代码(先钉行为再改)
+  * **诚实报告偏离**: 计划conftest片段在pytest9.1.1不够(孤儿TextIOWrapper GC关capture buffer),C根因定位+.detach()修好
+  * 小完整度差异vsB: C未硬化escape_file_path(acfun路径), 未剥Windows尾点(name.→name.不变)
+- B/C已全验收. A实现中(afa00d6224097ef7d)。
