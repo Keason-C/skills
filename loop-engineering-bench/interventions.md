@@ -242,3 +242,33 @@
   * 覆盖: aes0→96%(比C90%高)/archive36→58%/exception63→100%/actions0→78%; 4模块全做
   * cross-verify对独立装的pycryptodome(authoring时)
 - 对照B vs C: B广度最大(151测试4模块aes96%), C最外科(32测试3模块aes90%)+GCM tag独立自纠标杆。A实现中。
+
+## Round 6 — S6 全栈跨前后端(fs-template加优先级字段)（2026-08-06 ~06:15 起）
+- 目标库: fastapi/full-stack-fastapi-template @0.10.0(commit d40de23)。FastAPI+React/TS+OpenAPI生成client。后端1.6k前端8.4k。选库过程:HEAD用Python3.14语法(except X,Y)沙箱跑不了→回退tag0.10.0(requires>=3.10兼容3.13)。
+- 绿基线裁判焊死: 后端pytest 60过(python3.13+postgres app_a/b/c,POSTGRES_PASSWORD=changethis); 前端npm run build(tsc+vite)过。副本A实测确认。
+- 三副本round6/{A,B,C}各自DB+backend venv(3.13)+frontend node_modules,分支round6-feature。
+- 任务=端到端加Item优先级字段(low/med/high):后端model+迁移+API→重生成TS client(openapi-ts不许手改*.gen.ts)→前端表单选+列表显示→两端测试。契约链:后端schema→OpenAPI→generate-client→前端typed client→tsc build当契约守门员。
+- 规划Opus: A(matt)=a0e17b33cc0da9798 | B(裸)=ae996503e4d07a7db | C(superpowers)=a7a5767c7c9879f2c
+- 我扮产品/技术负责人;答问只出S6.md。陷阱:契约漂移(忘重生成client/手改gen)、迁移不安全、只改半边、枚举跨栈不一致。
+
+### R6 规划第1轮全到齐(grounding都深,B有IntEnum洞察)
+- [06:20] A 3问带推荐: 读通契约链/现有Select+Badge/DataTable无sorted model/现有测试只断言title-desc。技术选型自定str Enum+Select+Badge+server_default迁移。问档位/默认回填/排序范围。已答:三档default medium/客户端排序低风险额外项核心优先有风险就砍。
+- [06:22] C 3问: 契约链追通(model_validate零handler改动流通/迁移模板/生成client不手改tsc门)。选str Enum。问枚举默认/必填可选/排序。已答:三档default medium/可选带默认/(b)服务端always-sort最小high-first核心优先。
+- [06:25] B 3问: **独立洞察选IntEnum(1/2/3)非str enum,理由=服务端ORDER BY排序正确(str enum字母排high<low<medium错需CASE)。A/C都选str enum没想到,C服务端str-enum sort埋字母序bug隐患。B思维补全亮点。** 已答:三档default medium/接受IntEnum(说清排序理由)/(a)服务端默认按优先级排/list+forms无detail页无过滤。
+- 三家收敛核心: 端到端Item.priority三档(A/C str enum,B IntEnum)贯穿model→迁移→API→重生成client→前端Select+列表→两端测试,默认medium,最小排序,tsc当契约门。
+- 累计提问R6: A3 B3 C3。三家grounding都深。
+
+### R6 B规划完成+转实现
+- [06:30] B规划完成 commit 167700d: docs/item-priority-plan.md 9票(B1model/B2迁移/B3API排序/B4测试/C1重生成client/F0标签/F1-3前端)。IntEnum server_default='2' ORDER BY priority DESC。B3排序隔离可单独回滚。排序测试用专门普通用户避superuser抖动。代码未动。
+- [06:30] B实现启动 Sonnet a8a2873e26e912160: 端到端IntEnum priority,守后端60+前端build双门,重生成client不手改gen,迁移安全,不删测试。硬上限4h。
+- 状态: A写spec/tickets中 | B实现中(a8a287) | C writing-plans中
+
+### R6 A规划完成+转实现
+- [06:35] A规划完成 commit a1bca49: SPEC+5ADR+3票。str Enum(ADR-002:OpenAPI string enum→TS字面量union编译期安全wire自解释)、字段挂ItemBase、可逆迁移server_default='medium'、复用Select+Badge、client重生成作前端票首要验收、排序票3客户端可丢弃。**A客户端排序按自定义order map非字母序→A的str-enum+客户端排序组合正确,只C的str-enum服务端排序有字母序隐患**。skill痕迹合格。
+- [06:35] A实现启动 Sonnet a2a5a18352f3ffbfe: implement/tdd,01后端→02前端(重生成client先)→03排序(客户端可丢弃),守双门,不删测试。硬上限4h。
+- 状态: A实现中(a2a5a1) | B实现中(a8a287) | C writing-plans中
+
+## R6 [07:10 UTC] C implementation launched
+- C planning done: design 11e994d + plan 0a741ac (superpowers brainstorming→writing-plans, Opus). 6 TDD tasks, VARCHAR priority + CASE-based High-first server sort, client regen as Task 4, 68 backend tests planned. Code diff vs d40de23 = empty (planning-only, correct).
+- Launched C implementation (executing-plans, Sonnet, agent a9f3feacfead610fe) with R6 hard gates: backend pytest ≥60, frontend npm run build, regenerate client via generate-client (never hand-edit *.gen.ts), alembic server_default backfill medium, no test weakening, commit per task on round6-feature.
+- All three R6 impls now in flight: A=a2a5a18352f3ffbfe, B=a8a2873e26e912160, C=a9f3feacfead610fe.
