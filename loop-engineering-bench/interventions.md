@@ -188,3 +188,57 @@
   * **诚实报告偏离**: 计划conftest片段在pytest9.1.1不够(孤儿TextIOWrapper GC关capture buffer),C根因定位+.detach()修好
   * 小完整度差异vsB: C未硬化escape_file_path(acfun路径), 未剥Windows尾点(name.→name.不变)
 - B/C已全验收. A实现中(afa00d6224097ef7d)。
+
+## Round 5 — S5 gallery-dl 瘦身+补测试（2026-08-06 ~03:35 起）
+- 目标库: mikf/gallery-dl@86047cf(v1.32.9)。核心~13k行(非extractor),extractor~61k本轮不碰。膨胀+覆盖不均: vulture核心22死代码项;大模块util1247/cookies1166/job1161/option996;aes.py649行纯AES零测试(标杆补测靶),option/archive/actions/exception/update均无测。
+- 离线绿基线裁判焊死: 231过47跳过(断网确认)。命令见S5.md。extractor测试不在护栏。
+- 三副本round5/{A,B,C}@86047cf各venv,分支round5-slim,import验证OK(aes649行)。
+- 任务=瘦身(删真死代码,vulture佐证,不误删)+补测试(aes等零覆盖模块,KAT向量)+零回归+不碰extractor+不拆大模块+不加运行时依赖。
+- 规划Opus: A(matt)=aed408c4e0e27b1cd | B(裸)=a521c799639d4b1a4 | C(superpowers)=a274726be05e335df
+- 我扮重度用户+想接手维护者(懂Python怕回归);答问只出S5.md。陷阱区:vulture假阳性(反射/__all__/入口点/extractor调用/aes纯Python是fallback非死代码)。
+
+### R5 规划第1轮全到齐(三家全识破vulture假阳性陷阱!)
+- [03:40] C 4问: 排extractor得~50假命中→跨全包重跑塌缩~10→手验几乎全FP框架钩子,真死代码极小(DeprecatedConfigConstAction+4 vendored aes未调函数)。建议~80%补测20%瘦身,aes KAT核心。
+- [03:42] A 6问(带推荐): 跨全包核实(split_html 42文件/extract_iter 122/makeRecord覆盖logging/rebuild_auth覆盖requests/argparse签名),**还发现本venv Cryptodome缺失→纯Python AES是活跃路径非理论fallback**。测试面更宽:aes+exception+archive+actions,跳option/update。
+- [03:45] B 5问: 跨全树核实(extract_iter 225/NotFoundError 124/split_html 73),真死仅2符号(DeprecatedConfigConstAction+add_url)。**逐模块量覆盖率**(aes0%/archive36%/exception63%/actions0%/option12%/update0%)最量化。
+- **三家(含无skill基线B)全部独立验证到"vulture大多假阳性、真死代码极小"、都转向补测试为主**——本轮判断力测试三家都过。区分将在执行质量(KAT严谨/覆盖广度/proof-of-death)。
+- 统一裁决(同口径): 删DeprecatedConfigConstAction(真死,git记得); add_url若公共API则留; aes vendored不动只测; KAT标准NIST向量直接测纯Python核心; option/update跳过延后; aes深度优先+exception/archive/actions有余力补; 不设死覆盖指标但aes要厚; 新测试折进护栏。
+- 累计提问R5: A6 B5 C4。
+
+### R5 B规划完成+转实现, C设计已批
+- [03:50] C设计 commit f696bca(§2专讲假阳性错觉/§5 aes KAT/§7唯一删除),裁判审批+archive-first exception bonus,转writing-plans。
+- [03:52] B规划完成 commit 0a82f66: PLAN+TICKETS。S1删DeprecatedConfigConstAction留add_url; T1aes/T2archive/T3exception核心+T4actions stretch,aes只测不改(git diff须空),无smoke test; G1折护栏。真死代码~11行诚实标注。
+- [03:52] B实现启动 Sonnet aec5b05094b6f1c29: S1唯一删除(先全包grep证明)+T1 aes KAT(NIST向量直测纯Python核心)+T2/3 archive/exception,守231绿基线/aes代码不改/不删测试。硬上限4h。
+- 状态: A写spec/tickets中 | B实现中(aec5b0) | C writing-plans中
+
+### R5 A规划完成+转实现
+- [03:55] A规划完成 commit 7fe2650: SPEC+4ADR+6票(characterization-first)。ADR-001 proof-of-death程序/002测试优先/003 aes KAT策略/004 vendored aes不分叉。注意到scripts/run_tests.py自动发现test_*.py(新测试CI自动纳入无需改workflow)。skill痕迹合格。
+- [03:55] A实现启动 Sonnet a71a42dd6bcf3003e: implement/tdd,6票aes KAT旗舰+exception/archive/actions+唯一删除+集成验证。硬上限4h。
+- 状态: A实现中(a71a42) | B实现中(aec5b0) | C writing-plans中
+
+### R5 三家全部转实现(规划收官)
+- [04:00] C规划完成 commits f696bca/7c3ad74: design+9任务plan(Task1-5 test_aes.py FIPS-197/SP800-38A/GCM篡改检测/key-schedule直测纯Python核心, Task6 archive, Task7 exception, Task8 grep-gated删除proof-in-commit)。skill痕迹合格。
+- [04:00] C实现启动 Sonnet a05149df9af466470: executing-plans。
+- 三家实现并行: A=a71a42dd6bcf3003e(implement/tdd) | B=aec5b05094b6f1c29(无skill) | C=a05149df9af466470(executing-plans)。硬上限~08:00 UTC。
+- 规划提问R5总计: A6 B5 C4。三家全识破vulture假阳性、全转补测试为主、全收敛(aes KAT旗舰+唯一删除DeprecatedConfigConstAction+archive/exception)。区分在执行(KAT广度/覆盖/proof)。
+
+### R5 C实现完成+裁判亲手验收(全通过)
+- [04:05] C实现完成 9任务。裁判验收:
+  * 新测试32(aes15/archive6/exception11)护栏263过; 231绿基线断网仍231过47跳过(瘦身后)✓
+  * **C的aes用真FIPS-197向量**(KEY128/PT/CT128=69c4e0d8...官方Appendix C.1 KAT)✓
+  * **变异测试证明真验算**: 篡改aes.py SBOX[0]→8测试红, 还原→15过✓(非空跑)
+  * aes.py git diff=0(vendored不动); 只删option.py -10行(DeprecatedConfigConstAction真死+顺带清无用import sys)✓
+  * 现有test无删/改(git diff仅+3新文件)✓; 断网+双跑确定性✓
+  * aes覆盖0→90%(coverage.py, 仅venv非依赖)
+  * **标杆严谨: C发现自己计划GCM_TAG验不过, 用独立system cryptography库(非被测代码,避免循环)交叉核对复现密文修正tag=cc15abcc...**
+- B/C实现中. C已全验收.
+
+### R5 B实现完成+裁判亲手验收(全通过)
+- [04:10] B实现完成 S1+T1-4(含stretch actions)。裁判验收:
+  * 新测试151(aes44/archive26/exception40/actions41)护栏379过; 231绿基线断网仍231过(瘦身后)✓
+  * **B的aes用canonical SP800-38A官方向量**(PT_128=6bc1bee2/AES128_KEY=2b7e1516官方)✓(与C的FIPS-197 App C不同附录同样真)
+  * **变异测试证明真验算**: 篡改SBOX[0]→23测试红,还原→42过✓
+  * aes.py diff=0; 只删option.py -9行(DeprecatedConfigConstAction真死grep零引用)✓; 现有test无删✓
+  * 覆盖: aes0→96%(比C90%高)/archive36→58%/exception63→100%/actions0→78%; 4模块全做
+  * cross-verify对独立装的pycryptodome(authoring时)
+- 对照B vs C: B广度最大(151测试4模块aes96%), C最外科(32测试3模块aes90%)+GCM tag独立自纠标杆。A实现中。
