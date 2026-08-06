@@ -65,3 +65,70 @@
   * A=B同架构(正则扫散文,无散文洞,有容差洞); A多一个always-allowed{0,1,100}小洞+保守符号(偏误报安全向)。
   * C异构(结构化FigureRef精确匹配,无容差洞,off-by-digit都逮; 但散文洞:claim裸数不扫靠系统提示软兜)。
   * 三家核心均真强制、离线可测、非玩具; 各有可复现边缘洞。理想=C精确+AB散文扫描合体。
+
+## Round 3 — S3 真实开源代码库优化/重构（2026-08-06 起）
+- 目标库: httpie/cli commit 5b604c3 (~19k行, 源码9.8k+测试8k, HTTP CLI 高复杂度域)
+- 用户选库: 先私有仓survey(sourcing_agent16k/cops6.2k两个可用,agent-foundry/agentic-system空仓), 后用户令"找开源+偏高复杂度+你自己决定+下轮也自选"→裁判定 httpie/cli
+- 绿基线裁判焊死: 995过0失败(排24个网络/环境假象:remote_httpbin/big5字符集/root-chmod/cookie跨域)。锁定pytest命令见 S3.md
+- 三副本 round3/{A,B,C} 同commit隔离,各建venv装.[dev],分支round3-refactor,各收集1007测试
+- 任务=行为保持的重构/优化,守住绿基线,聚焦可review,改进要可测,不弱化测试骗绿
+- 规划Opus: A(matt grilling)=aaecd8782794bf5bd | B(裸)=a1d536398e4434146 | C(superpowers)=a96d8996b194ee7eb
+- 我扮维护负责人(懂代码但只定目标/约束/验收);答问只出S3.md
+
+### R3 规划提问
+- [00:25 UTC] C 第1轮3问：真读了 client/models/output/argparser/core 等核心代码,挖出仓库自身TODO/FIXME债务标记(argparser._process_auth/_guess_method, core.program separator逻辑, client.apply_missing_repeated_headers O(n²)),**实测**两处性能观察(冷import~180-220ms; EncodedStream iter_lines(CHUNK_SIZE=1)一次读一字节)。问:可维护vs性能杠杆/怎么度量better/最乱处风险偏好。已答:可维护优先但你挑价值最高低风险的,性能要可复现基准,行为敏感区必须先characterize钉死零diff才在界内。grounding质量高。
+
+### R3 规划第1轮全到齐
+- [00:30 UTC] B 第1轮4问：实测启动~280ms,找到SSL cipher枚举import时白加载整个CA证书包(ssl_.py:109),验证前后cipher列表字节一致,~5行修复;pygments eager import为更大但更险的备选。已答:只做SSL安全核心/pygments记后续/保留模块级字符串不动import契约/要guard测试+before-after数字。
+- [00:32 UTC] A 第1轮8问(带推荐):**最深grounding**——找到仓库自带pyperf harness(extras/profiling测startup/streaming/download),定startup lazy-import(pygments~35ms),**正确识破CHUNK_SIZE=1是--stream/SSE有意设计=陷阱主动弃(C曾当候选)**。已答:pyperf startup≥15%不许他基准回退/行为=byte-exact stdout+stderr+exit+wire/内部churn可但列符号/加characterization+guard测试/守Python下限。
+- 靶子分化: A=pygments延迟导入(pyperf) | B=SSL证书import成本(~5行) | C=整候选清单(字节流读取其一)。均真读代码+实测,grounding质量A>C>B但都高。
+- 累计提问R3: A8 | B4 | C3。
+
+### R3 靶子全锁定,三家转写spec/plan
+- [00:38 UTC] C 第2轮候选清单(实证CHUNK_SIZE=1是行为承重:跨读\r\n吐双换行→弃候选1,与A结论一致但C实证更硬)。推荐候选3=core.program separator逻辑抽取characterize-first。裁决批准候选3+闸门:先golden测试钉精确字节输出再抽取,范围限separator/blank-line决策抽小helper,太缠绕则退候选2。
+- 靶子终定: A=startup懒加载(pygments,pyperf≥15%,性能) | B=SSL证书import成本(~5行,性能) | C=separator逻辑抽取(可维护,characterize-first)。A/B走性能C走可维护,各挑最高价值,合评测本意。
+- 累计提问R3: A8 | B4 | C4(含候选轮)。三家均转spec/plan阶段。
+- 关键思维补全信号: A和C都识破CHUNK_SIZE=1陷阱(A推理/C实证),B未涉及此路径(B靶子在SSL不冲突)。
+
+### R3 B规划完成+转实现
+- [00:44 UTC] B规划完成 commit e511a13: planning/round3/{SPEC,TICKETS}.md。方案:_create_ssl_context加load_certs kwarg,get_default_ciphers_names传load_certs=False,DEFAULT_SSL_CIPHERS_STRING保持模块级字符串(import契约不动)。实测load_default_certs 1×→0,~32ms→0-3ms,cipher列表字节一致。代码未动(diff对基线空)。
+- [00:44 UTC] B实现启动 Sonnet af4331045c8a79b6d:守995绿基线/不弱化测试/加subprocess guard测试(certs 1→0)/pyperf startup before-after/无新依赖。硬上限4h。
+
+### R3 C设计审批
+- [00:50 UTC] C设计文档 commit f2fc57f(brainstorming→design→spec-review闸门)。契约形式化 S⇔prev_with_body∧oo.any()∧(force∨¬tty)+真值表,纯MessageSeparator状态机,characterize-first(7case×{TTY,piped}byte-exact golden),围栏严格只搬不简化,§7退候选2。裁判审批3设计选择(放writer.py/helper决策program发射/case矩阵),加"发现未覆盖路径先补case"约束。C转writing-plans。
+- 状态: A写spec/ADR中 | B实现中(af4331) | C writing-plans中
+
+### R3 C规划完成+转实现
+- [00:56 UTC] C规划完成 commits f2fc57f(design)+b10ff2a(2任务TDD plan)。**live验证characterization机制**(monkeypatch collect_messages,12矩阵格全字节匹配真值表,stderr空exit0)。plan无占位,golden逐字嵌入,带self-review(spec覆盖+类型一致)+维护者附加约束。代码未动。
+- [00:56 UTC] C实现启动 Sonnet a2048500fb5ece3e1:executing-plans,Task1 golden先绿(未改代码)→Task2抽取,守995绿基线,围栏严格,缠绕退候选2,不弱化测试。硬上限4h。
+- 状态: A写spec/ADR中(最慢) | B实现中(af4331) | C实现中(a20485)
+
+### R3 B实现完成+裁判亲手验收
+- [01:10 UTC] B实现完成: 2commit(ssl_.py+8/-2, test_ssl.py+31 guard)。裁判验收:
+  * diff干净聚焦,tests纯净增无删改(删除行grep空,无弱化测试骗绿)✓
+  * 亲手复现perf: HEAD下load_default_certs import时0调用(原1)✓; cipher枚举before~34-41ms→after~0.4ms(省~34ms)✓
+  * guard测试真回归捕捉器: 旧代码上failed,HEAD上passed✓
+  * 行为保持: 真请求路径默认load_certs=True不变,cipher列表字节一致
+  * 诚实说明pyperf容器噪声,补interleaved手测~36ms中位改进
+
+### R3 C实现完成+B基线确认+A规划中
+- [00:48 UTC] B基线裁判手跑确认: 996过(995+1guard)0失败。B验收全通过(diff净/perf复现/guard真/行为保持)。
+- [00:56 UTC] C实现完成: Task1 12golden未改代码全绿(闸门), Task2 7单测先ImportError(真TDD)后抽取。裁判审diff: core.py恰好只换separator两变量为MessageSeparator实例,separate()留原地,downloader/exit/check-status没碰,围栏严守; tests纯净增无删改。golden期望字节全程未变=零行为diff证明。C自报1014过。裁判基线复验中。
+- A规划中(~50min): 野心大——startup-lazy-imports SPEC+3ADR+8票,多阶段跨argparser/core/ssl/auth延迟导入。比B/C重得多,范围纪律待diff核。未到90min软上限。
+
+### R3 A规划完成+转实现, B/C验收全通过
+- [00:50 UTC] A规划完成 commit bc7bf98: SPEC(15用户故事)+3ADR+9票, docs/refactors/startup-lazy-imports/。**测量最深且诚实**:精确定位184ms parser import,推翻自己"延迟colors→45%"错判(重复计requests),残余requests溯到ExplicitNullAuth+plugins/builtin.py(不猜)。**分阶段A(pygments)→B(sessions/ssl)→C(requests relocation)+达标即停检查点(票05:A+B达≥15%可停不进C)**=好范围纪律。skill痕迹合格。代码未动。
+- [00:58 UTC] A实现启动 Sonnet ac805c1d4ceaee058: implement/tdd, characterize-first harness先+分阶段+测量检查点, 守995绿基线, 内部符号搬迁保向后兼容re-export, 硬上限4h。
+- [00:58 UTC] C基线裁判手跑确认: **1014过(995+19)0失败**。C验收全通过(diff净围栏严/纯净增测试/golden零行为diff证明)。
+- B/C 已全验收: B996过(perf复现certs1→0/~34ms→0.4ms/guard真), C1014过(characterize-first零diff)。A实现中。
+
+### R3 A实现完成+裁判亲手硬验收
+- [01:15 UTC] A实现完成 9票 commits 1c8db5e..92903e8: 14源文件, 净+298源码行(远大于B8行/C47行), 单一目标(startup懒加载)但改动面最大最险(碰help/插件注册/choices)。
+- 裁判亲手验收:
+  * **行为保持关键验证: --version + --help 字节级完全一致**✓(A动了help/choices机制,零diff,最大风险点过关)
+  * import-guard复现: 基线5重模块全加载; A只剩requests+charset_normalizer, pygments/httpie.ssl_/httpie.sessions确实消失✓(与A诚实披露2残留吻合)
+  * 启动计时复现: A~195-242ms vs 基线~297-321ms, 快~100ms/~1.5x(粗测,方向量级确认A声称--version1.87x真)
+  * tests纯净增无删改(删除行grep空)✓
+  * A诚实: 列5处偏离+证明2残留present非静默丢+达标即停检查点(A+B不达标才进C,有数字)
+  * 基线1027过复验中
+- A范围纪律张力: 单一目标但14文件~300行,review负担最重。coherent非散churn,但远超"small reviewable"。
