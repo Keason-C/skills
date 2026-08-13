@@ -1,6 +1,6 @@
 ---
 name: setup-claude-md
-description: Inject stack/workflow modules from the global template set into this project's CLAUDE.md as snapshot blocks.
+description: Inject stack/workflow modules from the global template set into this project's CLAUDE.md as snapshot blocks, and scaffold the project's constitution-doc/ folder.
 disable-model-invocation: true
 ---
 
@@ -20,6 +20,16 @@ This is a prompt-driven skill, not a deterministic script. Explore, present what
 | `agent-dev` | backend or frontend evidence holds AND deps include `pydantic-ai`, `claude-agent-sdk`, `@anthropic-ai/*`, or `ai` (Vercel AI SDK) |
 | `vibe-coding` | none — always presented as "no detection signal" |
 | `mattpocock-rules` | mattpocock-skills plugin installed (a `mattpocock` folder under `~/.claude/plugins/cache/`) |
+| `constitution` | none — automatic, no selection (see Constitution docs below) |
+
+## Constitution docs
+
+Besides the selectable modules, this skill scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. Rules:
+
+- **Automatic — no selection.** The user is informed, not asked.
+- **Fill gaps only, never overwrite.** Copy a template file only if it is missing at the target. Once filled in, these are living project documents; template updates do NOT propagate to them — there is no diff/refresh semantics here, unlike module blocks.
+- **Copy verbatim.** `{{...}}` placeholders and template comments stay as-is; they guide whoever authors the docs later, not this skill.
+- The `constitution` module block in CLAUDE.md routes to this folder: first injection is automatic (no selection); on re-runs it diffs like any other block, since the user may have edited the routing text.
 
 ## Block format
 
@@ -44,9 +54,10 @@ The answer is also the value of `{{USER_LANGUAGE}}`: when a module template cont
 ### 1. Explore
 
 - Root `CLAUDE.md` — exists? Which `<!-- module:NAME -->` blocks does it already contain, and does each block's content match the current template in `modules/`?
+- Root `constitution-doc/` — exists? Which of the template files are missing?
 - Gather the evidence in the table. Record the concrete findings (file names, dependency names), not just yes/no.
 
-Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded.
+Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded, and the set of missing constitution doc files is known.
 
 ### 2. Present
 
@@ -55,6 +66,8 @@ One line per module: name, injection status, evidence verbatim ("found `pyprojec
 - **Not injected** → user picks which to inject.
 - **Injected & differs** → per module, show the diff between the block and the current template, and ask overwrite or keep. Say explicitly that the difference may be the user's own project edits — "keep" protects those.
 - **Injected & up to date** → report as up to date; nothing to ask.
+
+Constitution docs are a statement, not a question: "will create `constitution-doc/` and add X, Y" (or "constitution-doc/ complete — nothing to add").
 
 ### 3. Confirm
 
@@ -66,9 +79,10 @@ Show a draft of exactly what will be written: full block content for new injecti
 - New modules: append their blocks at the end of the file.
 - Refreshed modules: replace content between their existing markers in place.
 - Every line outside the markers stays byte-for-byte untouched.
+- Copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject the `constitution` module block if not present.
 
-Done when each selected module has exactly one marker block whose content matches the confirmed draft.
+Done when each selected module has exactly one marker block whose content matches the confirmed draft, and `constitution-doc/` contains every template file.
 
 ### 5. Done
 
-Report per module: injected / refreshed / kept / up to date / not selected. Remind the user: re-run `/setup-claude-md` after global template updates to refresh; remove a module by deleting its marker block.
+Report per module: injected / refreshed / kept / up to date / not selected; plus which constitution doc files were scaffolded. Remind the user: re-run `/setup-claude-md` after global template updates to refresh; remove a module by deleting its marker block.
