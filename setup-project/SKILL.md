@@ -79,7 +79,7 @@ Show a draft of exactly what will be written: full block content for new injecti
 - New modules: append their blocks at the end of the file.
 - Refreshed modules: replace content between their existing markers in place.
 - Every line outside the markers stays byte-for-byte untouched.
-- Copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject the `constitution` module block if not present.
+- Copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject the `constitution` module block if not present — pinned at the top of the file, above every other block.
 
 Done when each selected module has exactly one marker block whose content matches the confirmed draft, and `constitution-doc/` contains every template file.
 
