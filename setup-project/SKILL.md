@@ -1,14 +1,14 @@
 ---
-name: setup-claude-md
-description: Inject stack/workflow modules from the global template set into this project's CLAUDE.md as snapshot blocks, and scaffold the project's constitution-doc/ folder.
+name: setup-project
+description: Set up a project — inject stack/workflow modules from the global template set into its CLAUDE.md as snapshot blocks, and scaffold its constitution-doc/ folder.
 disable-model-invocation: true
 ---
 
-# Setup CLAUDE.md
+# Set up project
 
-Inject selected modules from this skill's `modules/` folder into the project's root `CLAUDE.md` as marked snapshot blocks. Evidence informs the user; the user decides every module. Re-runs refresh existing blocks; the set of injected blocks only grows — removing one is the user's own edit (delete the marker block).
+Inject selected modules from this skill's `modules/` folder into the project's root `CLAUDE.md` as marked snapshot blocks, and scaffold the project's `constitution-doc/` folder. Evidence informs the user; the user decides every module. Re-runs refresh existing blocks; the set of injected blocks only grows — removing one is the user's own edit (delete the marker block).
 
-This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
+This is a prompt-driven skill, not a deterministic script.
 
 ## Modules and evidence
 
@@ -85,4 +85,4 @@ Done when each selected module has exactly one marker block whose content matche
 
 ### 5. Done
 
-Report per module: injected / refreshed / kept / up to date / not selected; plus which constitution doc files were scaffolded. Remind the user: re-run `/setup-claude-md` after global template updates to refresh; remove a module by deleting its marker block.
+Report per module: injected / refreshed / kept / up to date / not selected; plus which constitution doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring. Remind the user: re-run `/setup-project` after global template updates to refresh; remove a module by deleting its marker block.

@@ -33,7 +33,7 @@
 
 - Each Phase is a **shippable version**, not a task tracker. A Phase carries a **Decision** (the ruling on how far this round goes before it ships) and **Acceptance Criteria** (verifiable acceptance conditions).
 - Two levels only: directly under a Phase are **stages**, numbered `Stage-1` / `Stage-2` / `Stage-3`, one `###` subheading per stage, and **one stage maps to one spec** (living under `{{SPEC_DIR}}`, following the issue flow). Stages are never split further; task-level progress belongs to issues, not this file.
-- A stage's body is a single `Description:` field line — one sentence on what the stage delivers, no implementation detail.
+- A stage's body is two field lines: `Description:` — one sentence on what the stage delivers, no implementation detail — and `Spec:` — the path to the stage's spec file, or `non-spec` if the stage has none.
 - Both Phases and stages carry a `Status:` line with values `planned` / `in-progress` / `awaiting-acceptance` / `closed`. **Closing (`closed`) requires user confirmation** — an agent may only advance a status to `awaiting-acceptance` and request acceptance, never close on its own.
 - No more than three Phases on the books at once; add a new Phase only after an old one closes.
 
@@ -61,17 +61,23 @@ Status: `{{STATUS}}`
 
 Description: {{STAGE_DESC}}
 
+Spec: {{SPEC_PATH|non-spec}}
+
 ### Stage-2: {{STAGE_NAME}}
 
 Status: `{{STATUS}}`
 
 Description: {{STAGE_DESC}}
 
+Spec: {{SPEC_PATH|non-spec}}
+
 ### Stage-3: {{STAGE_NAME}}
 
 Status: `{{STATUS}}`
 
 Description: {{STAGE_DESC}}
+
+Spec: {{SPEC_PATH|non-spec}}
 
 <!-- Ideas not yet on the books go on the single line below; delete the line if there are none. -->
 
