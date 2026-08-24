@@ -6,7 +6,7 @@ Code organization: Netflix Dispatch style.
 
 ## Core
 
-- Data modeling & validation: pydantic
+- Data contracts: pydantic, types-first — fields that travel together get a model declared before the code that uses them; raw dicts only at (de)serialization edges
 - API layer: FastAPI, with pydantic models defining request/response contracts
 - HTTP client: httpx2
 - Workflow: pydantic-graph
