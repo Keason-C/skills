@@ -1,12 +1,12 @@
 ---
 name: setup-project
-description: Set up a project — inject stack/workflow modules from the global template set into its CLAUDE.md as snapshot blocks, scaffold its constitution-doc/ folder, inject the user-reminders hooks, and point AGENTS.md at CLAUDE.md.
+description: Set up a project — inject stack/workflow modules from the global template set into its CLAUDE.md as snapshot blocks (the constitution module scaffolds constitution-doc/), inject the user-reminders hooks, and point AGENTS.md at CLAUDE.md.
 disable-model-invocation: true
 ---
 
 # Set up project
 
-Inject selected modules from this skill's `modules/` folder into the project's root `CLAUDE.md` as marked snapshot blocks, scaffold the project's `constitution-doc/` folder, inject the user-reminders hook, and make `AGENTS.md` point at `CLAUDE.md`. Evidence informs the user; the user decides every module. Re-runs refresh existing blocks; the set of injected blocks only grows — removing one is the user's own edit (delete the marker block).
+Inject selected modules from this skill's `modules/` folder into the project's root `CLAUDE.md` as marked snapshot blocks (the `constitution` module also scaffolds the project's `constitution-doc/` folder), inject the user-reminders hook, and make `AGENTS.md` point at `CLAUDE.md`. Evidence informs the user; the user decides every module. Re-runs refresh existing blocks; the set of injected blocks only grows — removing one is the user's own edit (delete the marker block).
 
 This is a prompt-driven skill, not a deterministic script.
 
@@ -20,16 +20,16 @@ This is a prompt-driven skill, not a deterministic script.
 | `agent-dev` | backend or frontend evidence holds AND deps include `pydantic-ai`, `claude-agent-sdk`, `@anthropic-ai/*`, or `ai` (Vercel AI SDK) |
 | `vibe-coding` | none — always presented as "no detection signal" |
 | `mattpocock-rules` | mattpocock-skills plugin installed (a `mattpocock` folder under `~/.claude/plugins/cache/`) |
-| `constitution` | none — automatic, no selection (see Constitution docs below) |
+| `constitution` | root `constitution-doc/` already exists; otherwise presented as "no signal" (see Constitution docs below) |
 
 ## Constitution docs
 
-Besides the selectable modules, this skill scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. Rules:
+The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. Rules:
 
-- **Automatic — no selection.** The user is informed, not asked.
+- **User-selected like any module.** Selecting it means both the routing block and the doc scaffold; once injected, re-runs keep it in play without re-asking.
 - **Fill gaps only, never overwrite.** Copy a template file only if it is missing at the target. Once filled in, these are living project documents; template updates do NOT propagate to them — there is no diff/refresh semantics here, unlike module blocks.
 - **Copy verbatim.** `{{...}}` placeholders and template comments stay as-is; they guide whoever authors the docs later, not this skill.
-- The `constitution` module block in CLAUDE.md routes to this folder: first injection is automatic (no selection); on re-runs it diffs like any other block, since the user may have edited the routing text.
+- The `constitution` module block in CLAUDE.md routes to this folder; on re-runs it diffs like any other block, since the user may have edited the routing text.
 
 ## AGENTS.md pointer
 
@@ -130,7 +130,7 @@ One line per module: name, injection status, evidence verbatim ("found `pyprojec
 - **Injected & differs** → per module, show the diff between the block and the current template, and ask overwrite or keep. Say explicitly that the difference may be the user's own project edits — "keep" protects those.
 - **Injected & up to date** → report as up to date; nothing to ask.
 
-Constitution docs are a statement, not a question: "will create `constitution-doc/` and add X, Y" (or "constitution-doc/ complete — nothing to add").
+`constitution` joins the module question like the rest. When it is selected or already injected, add the doc statement: "will create `constitution-doc/` and add X, Y" (or "constitution-doc/ complete — nothing to add").
 
 `AGENTS.md` is a statement too — "will write the pointer to CLAUDE.md" / "pointer already in place" — unless it exists with other content, which is the one case that asks (replace or keep).
 
@@ -146,12 +146,12 @@ Show a draft of exactly what will be written: full block content for new injecti
 - New modules: append their blocks at the end of the file.
 - Refreshed modules: replace content between their existing markers in place.
 - Every line outside the markers stays byte-for-byte untouched.
-- Copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject the `constitution` module block if not present — pinned at the top of the file, above every other block.
+- If `constitution` was selected or its block already exists: copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject its block if not present — pinned at the top of the file, above every other block.
 - Write `AGENTS.md` with the pointer content, unless the user chose to keep existing content. Never copy `CLAUDE.md` into it.
 - Copy `hooks/user-reminders.md` into `.claude/hooks/` (create folders as needed) unless the user chose to keep their edited copy, and merge both settings entries per the User-reminders hook section.
 
-Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every template file, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
+Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every template file whenever the `constitution` module is in play, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
 
 ### 5. Done
 
-Report per module: injected / refreshed / kept / up to date / not selected; plus which constitution doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring; plus the `AGENTS.md` outcome (written / already in place / kept); plus the user-reminders hooks outcome (injected / refreshed / kept / in place) and when they take effect. Remind the user: re-run `/setup-project` after global template updates to refresh; remove a module by deleting its marker block; project instructions are edited in `CLAUDE.md` only — `AGENTS.md` stays a pointer.
+Report per module: injected / refreshed / kept / up to date / not selected; plus, when `constitution` is in play, which doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring; plus the `AGENTS.md` outcome (written / already in place / kept); plus the user-reminders hooks outcome (injected / refreshed / kept / in place) and when they take effect. Remind the user: re-run `/setup-project` after global template updates to refresh; remove a module by deleting its marker block; project instructions are edited in `CLAUDE.md` only — `AGENTS.md` stays a pointer.
