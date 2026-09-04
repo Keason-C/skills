@@ -5,8 +5,9 @@ Method, not project content: a project's own rules live in its own docs. Improve
 ## Roadmap
 
 - **One version, one file**, at `roadmap/v<N>-<slug>.md`. A version is the shipping unit and a **Phase is one feature**; a file holds those two levels and no more, and **one Phase maps to one spec** — write `non-spec` when it needs none. Task-level progress belongs to issues.
+- **Start a version by copying the blank template** [`roadmap/v{{N}}-{{SLUG}}.md`](roadmap/) to `v<N>-<slug>.md`, and fill in the copy. The blank is a fixture, not a version: it stays, and it never counts against the file limit.
 - **A version's Status is recorded only in [`mission.md`](mission.md)'s version table**; a version file carries Phase `Status:` alone.
-- At most three files in `roadmap/`, at most one version `in-progress`.
+- At most three version files in `roadmap/`, at most one version `in-progress`.
 - Once every Phase in a version is closed, move its file to the archive and drop its row from the mission table; `roadmap/` carries only what is still ahead.
 - **A distant version is a guess, not a plan.** At each version close, review the remaining version files: keep what still holds, delete the file of what has been overtaken.
 - **Closing a Phase is the sweep clock.** When a Phase turns `awaiting-acceptance`, search this folder for every ticket number it closed and rewrite each "pending, see ticket NN" into its answer, or re-point it at the ticket that now owns the question. A dangling pointer is the failure the sweep exists to catch.

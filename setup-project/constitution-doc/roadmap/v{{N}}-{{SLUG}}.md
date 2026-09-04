@@ -1,4 +1,4 @@
-<!-- TEMPLATE — rename the file to `v<N>-<slug>.md` first, then fill in: replace every {{...}} with real content, add or drop Phases as needed, and delete all <!-- --> comments, this line included. This version's Status is recorded in `../mission.md`'s version table, not here. Copy any existing version file to start the next one. -->
+<!-- TEMPLATE — a fixture: it stays here blank, so the next version file always has a shape to follow. To start a version, COPY this file to `v<N>-<slug>.md` and fill in the copy: replace every {{...}} with real content, add or drop Phases as needed, and delete all <!-- --> comments, this line included. A version's Status is recorded in `../mission.md`'s version table, not here. -->
 
 # v{{N}} — {{VERSION_NAME}}
 
