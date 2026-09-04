@@ -5,7 +5,7 @@ Adds to the backend/frontend stack when the project is an AI-agent app.
 ## Backend
 
 - Agents: pydantic-ai / Claude Agent SDK
-- Lightweight sandbox: monty (Pydantic's lightweight Python interpreter for safely running untrusted / agent-generated code; still experimental as of 2026-07)
+- Lightweight sandbox: monty (Pydantic's lightweight Python interpreter for safely running untrusted / agent-generated code; experimental)
 - Observability: OpenTelemetry — Logfire as a swappable OTLP backend
 - Evals: pydantic-evals
 

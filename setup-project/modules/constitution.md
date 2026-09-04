@@ -1,8 +1,10 @@
 # Constitution
 
-Project design docs live in `constitution-doc/` (repo root).
+Design docs live in `constitution-doc/`; `README.md` indexes them. Load the section a task names. Placeholders are gaps, not facts: a `{{...}}` standing where you needed an answer means that part is unwritten — say so and offer to fill it.
 
-- `constitution.md` — Mission and Roadmap. **Before writing a plan or the first code edit of a task, read the current Phase (the first not `closed`): its `Decision` bounds scope, its `Acceptance Criteria` define done, and each Stage's `Spec:` points to its spec file.** Set the Stage you start to `Status: in-progress`; never report work complete until you have set it to `awaiting-acceptance` and requested acceptance. Advancing a `Status:` (never to `closed`) is the only edit you may make on your own; every other edit — Mission, Phase, Stage text, adding or removing a Stage — requires user confirmation.
-- `api-design.md` — the project's single API contract. **Before editing or adding endpoint code, read — or first write — that endpoint's section**; the contract change lands in the doc before the code.
-- UI design files (mockups, HTML previews) live in `.design/` (repo root). To show one, open it locally for the user — never publish it as a claude.ai Artifact.
-- If a doc disagrees with the code or with reality, stop and surface it.
+- **Before a plan or the first edit of a task**: read the `roadmap/` file that `mission.md`'s `in-progress` row points at. Set the Phase you are starting to `Status: in-progress`; before reporting completion set it to `awaiting-acceptance`, run the retirement sweep (`CONVENTIONS.md`, Roadmap), and request acceptance.
+- **Before editing `constitution-doc/`**: read `CONVENTIONS.md`.
+- **When the ask reaches past the current version** — new scope, a priority call, a "is this worth building": read `mission.md` before answering.
+- **Before adding a dependency, swapping a framework, or changing how it deploys**: read `tech-stack.md`.
+- **Edits that wait for the user**: `closed`, versions and Phases, `mission.md`, and `tech-stack.md`'s "Ruled out".
+- **A doc that disagrees with the code or with reality**: stop and surface it.

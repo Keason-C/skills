@@ -9,9 +9,14 @@ Don't pick up an issue on your own initiative in a session that is already doing
 ## to-spec
 
 - **Default triage label is `ready-for-human`**, overriding the `ready-for-agent` the skill's own instructions apply.
-- Once the spec is published, ask the user whether it will be broken into tickets. Don't run to-tickets on your own initiative — the split is the user's call.
+- Once the spec is published, ask the user whether it will be broken into tickets — the split is the user's call; run to-tickets only on a yes.
   - Answer is **yes** → leave the spec at the default `ready-for-human`; the tickets carry their own labels.
   - Answer is **no** → the spec itself is the work item; relabel it `ready-for-agent`.
+
+## to-tickets
+
+- Every ticket carries a `**Type:**` line right below `**Status:**`. Known types: `task`, `research`, `grilling`, `prototype` — coin a new type when a ticket fits none of these.
+- `Status:` follows the acceptor — the executor is the other side: a human acceptor makes the ticket `ready-for-agent`; a ticket only a human can carry out is `ready-for-human`.
 
 ## grilling
 

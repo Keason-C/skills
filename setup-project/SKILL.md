@@ -16,18 +16,24 @@ This is a prompt-driven skill, not a deterministic script.
 |---|---|
 | `language` | none — parameterized by the language question in step 0 |
 | `backend-python` | `pyproject.toml`, `setup.py`, or `environment.yml` exists |
+| `database` | deps include `sqlmodel`, `sqlalchemy`, `alembic`, `asyncpg` or `psycopg`, or a compose file defines a `postgres` service |
 | `frontend-ts` | `package.json` deps include `vite` or `react`, or `tsconfig.json` exists |
 | `agent-dev` | backend or frontend evidence holds AND deps include `pydantic-ai`, `claude-agent-sdk`, `@anthropic-ai/*`, or `ai` (Vercel AI SDK) |
 | `vibe-coding` | none — always presented as "no detection signal" |
 | `mattpocock-rules` | mattpocock-skills plugin installed (a `mattpocock` folder under `~/.claude/plugins/cache/`) |
 | `constitution` | root `constitution-doc/` already exists; otherwise presented as "no signal" (see Constitution docs below) |
+| `design` | root `.design/` exists; otherwise presented as "no signal" |
 
 ## Constitution docs
 
-The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. Rules:
+The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. The folder holds **two layers**, and each is treated differently:
 
-- **User-selected like any module.** Selecting it means both the routing block and the doc scaffold; once injected, re-runs keep it in play without re-asking.
-- **Fill gaps only, never overwrite.** Copy a template file only if it is missing at the target. Once filled in, these are living project documents; template updates do NOT propagate to them — there is no diff/refresh semantics here, unlike module blocks.
+- **Content** — `README.md`, `mission.md`, `tech-stack.md`, and the version-file template in `roadmap/`. **Fill gaps only, never overwrite.** Copy a template file only if it is missing at the target; for the version-file template the target is the whole of `roadmap/` — any `v*.md` already there (the user renames it once filled in) counts as present, so nothing is added. Once filled in, these are living project documents; template updates do NOT propagate to them. A project scaffolded from an earlier layout (`architecture/` + `api-design.md`, `modules/`, or a combined `constitution.md`) gets the new files added beside the old ones; moving its content over is the user's own migration, never this skill's.
+- **Conventions** — `CONVENTIONS.md`: how a doc here is written and when one retires. It is method rather than project content, so it **diffs and refreshes like a module block** — on a re-run, compare it against the current template, and where it differs, show the diff and ask overwrite or keep, saying that the difference may be the project's own hard-won rules. This is the path by which a convention learned on one project reaches the next: improve the template, and every project's next `/setup-project` offers it.
+
+The rest:
+
+- **User-selected like any module.** Selecting it means the routing block and both layers; once injected, re-runs keep it in play without re-asking.
 - **Copy verbatim.** `{{...}}` placeholders and template comments stay as-is; they guide whoever authors the docs later, not this skill.
 - The `constitution` module block in CLAUDE.md routes to this folder; on re-runs it diffs like any other block, since the user may have edited the routing text.
 
@@ -58,7 +64,7 @@ The pointer is an attention anchor, not an instruction: it repeats the `<user-re
 
 Two artifacts, both automatic (the user is informed, not asked):
 
-1. `.claude/hooks/user-reminders.md` — a snapshot of this skill's `hooks/user-reminders.md` template with `{{USER_LANGUAGE}}` rendered. Snapshot semantics match module blocks: the project owns its copy; on re-runs, diff it against the *rendered* template, and if it differs, show the diff and ask overwrite or keep.
+1. `.claude/hooks/user-reminders.md` — a verbatim snapshot of this skill's `hooks/user-reminders.md` template. Snapshot semantics match module blocks: the project owns its copy; on re-runs, diff it against the template, and if it differs, show the diff and ask overwrite or keep.
 2. These entries merged into `.claude/settings.json` — create the file if missing, preserve every existing key, and add only an entry whose exact command is absent (never duplicate):
 
 ```json
@@ -110,17 +116,17 @@ The block is a snapshot: the project owns it from the moment it is written. User
 
 Before anything else, ask the user in English: "What language should I use when talking with you?" (English, because the answer isn't known yet.) Conduct the rest of the session in the answered language.
 
-The answer is also the value of `{{USER_LANGUAGE}}`: every template carrying that placeholder renders it as the user's language on injection, both under `modules/` (the `language` module) and `hooks/user-reminders.md`. Agent-facing text inside every template stays English.
+The answer is also the value of `{{USER_LANGUAGE}}`, rendered on injection into every template that carries it — today that is `modules/language.md`. Agent-facing text inside every template stays English.
 
 ### 1. Explore
 
 - Root `CLAUDE.md` — exists? Which `<!-- module:NAME -->` blocks does it already contain, and does each block's content match the current template in `modules/`?
-- Root `constitution-doc/` — exists? Which of the template files are missing?
+- Root `constitution-doc/` — exists? Which of the template files are missing (for `roadmap/`, judge by whether any `v*.md` is already there), and is its `CONVENTIONS.md` missing / matching the current template / differing?
 - Root `AGENTS.md` — missing / already the pointer / other content?
 - `.claude/hooks/user-reminders.md` — missing / matches the template / differs? And does `.claude/settings.json` already carry the user-reminders `UserPromptSubmit` and `PostToolBatch` entries?
 - Gather the evidence in the table. Record the concrete findings (file names, dependency names), not just yes/no.
 
-Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded, the set of missing constitution doc files is known, `AGENTS.md` has one of the three states above, and both user-reminders hook artifacts have a recorded state.
+Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded, the set of missing constitution doc files is known and `CONVENTIONS.md` has one of its three states, `AGENTS.md` has one of the three states above, and both user-reminders hook artifacts have a recorded state.
 
 ### 2. Present
 
@@ -130,7 +136,7 @@ One line per module: name, injection status, evidence verbatim ("found `pyprojec
 - **Injected & differs** → per module, show the diff between the block and the current template, and ask overwrite or keep. Say explicitly that the difference may be the user's own project edits — "keep" protects those.
 - **Injected & up to date** → report as up to date; nothing to ask.
 
-`constitution` joins the module question like the rest. When it is selected or already injected, add the doc statement: "will create `constitution-doc/` and add X, Y" (or "constitution-doc/ complete — nothing to add").
+`constitution` joins the module question like the rest. When it is selected or already injected, add the doc statement: "will create `constitution-doc/` and add X, Y" (or "constitution-doc/ complete — nothing to add"). `CONVENTIONS.md` is the only file in the folder that asks: where it differs from the template, show the diff and ask overwrite or keep, saying the difference may be conventions the project earned itself.
 
 `AGENTS.md` is a statement too — "will write the pointer to CLAUDE.md" / "pointer already in place" — unless it exists with other content, which is the one case that asks (replace or keep).
 
@@ -146,12 +152,12 @@ Show a draft of exactly what will be written: full block content for new injecti
 - New modules: append their blocks at the end of the file.
 - Refreshed modules: replace content between their existing markers in place.
 - Every line outside the markers stays byte-for-byte untouched.
-- If `constitution` was selected or its block already exists: copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); inject its block if not present — pinned at the top of the file, above every other block.
+- If `constitution` was selected or its block already exists: copy the missing constitution doc files into `constitution-doc/` (create the folder if needed); overwrite `CONVENTIONS.md` only where the user chose to refresh it; inject its block if not present — pinned at the top of the file, above every other block.
 - Write `AGENTS.md` with the pointer content, unless the user chose to keep existing content. Never copy `CLAUDE.md` into it.
 - Copy `hooks/user-reminders.md` into `.claude/hooks/` (create folders as needed) unless the user chose to keep their edited copy, and merge both settings entries per the User-reminders hook section.
 
-Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every template file whenever the `constitution` module is in play, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
+Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every template file whenever the `constitution` module is in play (`roadmap/` holding at least one `v*.md`) and its `CONVENTIONS.md` is the version the user chose, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
 
 ### 5. Done
 
-Report per module: injected / refreshed / kept / up to date / not selected; plus, when `constitution` is in play, which doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring; plus the `AGENTS.md` outcome (written / already in place / kept); plus the user-reminders hooks outcome (injected / refreshed / kept / in place) and when they take effect. Remind the user: re-run `/setup-project` after global template updates to refresh; remove a module by deleting its marker block; project instructions are edited in `CLAUDE.md` only — `AGENTS.md` stays a pointer.
+Report per module: injected / refreshed / kept / up to date / not selected; plus, when `constitution` is in play, which doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring, filled section by section as the project earns the content — plus `CONVENTIONS.md`'s outcome (scaffolded / refreshed / kept / up to date); plus the `AGENTS.md` outcome (written / already in place / kept); plus the user-reminders hooks outcome (injected / refreshed / kept / in place) and when they take effect. Remind the user: re-run `/setup-project` after global template updates to refresh; remove a module by deleting its marker block; project instructions are edited in `CLAUDE.md` only — `AGENTS.md` stays a pointer.
