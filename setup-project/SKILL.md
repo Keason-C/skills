@@ -26,10 +26,10 @@ This is a prompt-driven skill, not a deterministic script.
 
 ## Constitution docs
 
-The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds project design docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. The folder holds **two layers**, and each is treated differently:
+The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds the project's constitution docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. The folder holds **two layers**, and each is treated differently:
 
-- **Content** — `README.md`, `mission.md`, `tech-stack.md`. **Fill gaps only, never overwrite.** Copy a template file only if it is missing at the target. Once filled in, these are living project documents; template updates do NOT propagate to them. A project scaffolded from an earlier layout (`architecture/` + `api-design.md`, `modules/`, or a combined `constitution.md`) gets the new files added beside the old ones; moving its content over is the user's own migration, never this skill's.
-- **Method** — `CONVENTIONS.md` (how a doc here is written and when one retires) and the blank version-file template `roadmap/v{{N}}-{{SLUG}}.md` (copied to start a version, so the shape stays in front of whoever writes the next one). These are **fixtures**: the project reads them, never fills them in. Each is restored whenever missing — the blank template no matter what else `roadmap/` holds — and each **diffs and refreshes like a module block**: on a re-run compare it against the current template, and where it differs, show the diff and ask overwrite or keep, saying that the difference may be the project's own hard-won rules. This is the path by which method learned on one project reaches the next: improve the template, and every project's next `/setup-project` offers it.
+- **Content** — `README.md`, `mission.md`, `tech-stack.md`, each copied from its blank in `template/`. **Fill gaps only, never overwrite.** Copy a blank to the doc's own path only if the doc is missing there. Once filled in, these are living project documents; template updates do NOT propagate to them. A project scaffolded from an earlier layout (`architecture/` + `api-design.md`, `modules/`, or a combined `constitution.md`) gets the new files added beside the old ones; moving its content over is the user's own migration, never this skill's.
+- **Method** — `CONVENTIONS.md` (how a doc here is written and when one retires) and `template/`, holding the blank of every doc: `README.md`, `mission.md`, `tech-stack.md`, `v{{N}}-{{SLUG}}.md`. The folder is where an agent looks up the intended shape of a doc — a reference to consult and copy from, not a form the doc must match. These are **fixtures**: the project reads them, never fills them in. Each is restored whenever missing — every blank in `template/` no matter which docs the project has already filled in — and each **diffs and refreshes like a module block**: on a re-run compare it against the current template, and where it differs, show the diff and ask overwrite or keep, saying that the difference may be the project's own hard-won rules. This is the path by which method learned on one project reaches the next: improve the template, and every project's next `/setup-project` offers it.
 
 The rest:
 
@@ -121,12 +121,12 @@ The answer is also the value of `{{USER_LANGUAGE}}`, rendered on injection into 
 ### 1. Explore
 
 - Root `CLAUDE.md` — exists? Which `<!-- module:NAME -->` blocks does it already contain, and does each block's content match the current template in `modules/`?
-- Root `constitution-doc/` — exists? Which of the content files (`README.md`, `mission.md`, `tech-stack.md`) are missing? And each method file — `CONVENTIONS.md`, the blank `roadmap/v{{N}}-{{SLUG}}.md` — missing / matching the current template / differing? Judge the blank by that exact filename; other `v*.md` are the project's version files and say nothing about it.
+- Root `constitution-doc/` — exists? Which of the content files (`README.md`, `mission.md`, `tech-stack.md`) are missing? And each method file — `CONVENTIONS.md`, plus every blank in `template/` — missing / matching the current template / differing? A filled doc says nothing about its blank; judge each blank by its own path under `template/`.
 - Root `AGENTS.md` — missing / already the pointer / other content?
 - `.claude/hooks/user-reminders.md` — missing / matches the template / differs? And does `.claude/settings.json` already carry the user-reminders `UserPromptSubmit` and `PostToolBatch` entries?
 - Gather the evidence in the table. Record the concrete findings (file names, dependency names), not just yes/no.
 
-Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded, the set of missing constitution content files is known and each method file (`CONVENTIONS.md`, the blank version template) has one of its three states, `AGENTS.md` has one of the three states above, and both user-reminders hook artifacts have a recorded state.
+Done when every module in the table has both an injection status (injected & up to date / injected & differs / not injected) and its evidence recorded, the set of missing constitution content files is known and each method file (`CONVENTIONS.md`, every blank in `template/`) has one of its three states, `AGENTS.md` has one of the three states above, and both user-reminders hook artifacts have a recorded state.
 
 ### 2. Present
 
@@ -152,11 +152,11 @@ Show a draft of exactly what will be written: full block content for new injecti
 - New modules: append their blocks at the end of the file.
 - Refreshed modules: replace content between their existing markers in place.
 - Every line outside the markers stays byte-for-byte untouched.
-- If `constitution` was selected or its block already exists: copy every missing constitution doc file into `constitution-doc/` (create the folder if needed), the blank version template included even when `roadmap/` already holds version files; overwrite a method file only where the user chose to refresh it; inject its block if not present — pinned at the top of the file, above every other block.
+- If `constitution` was selected or its block already exists: copy every missing constitution doc file into `constitution-doc/` (creating it, and an empty `roadmap/`, if needed) — every blank into `template/` whatever the project has already filled in, and each missing content doc from its blank; overwrite a method file only where the user chose to refresh it; inject its block if not present — pinned at the top of the file, above every other block.
 - Write `AGENTS.md` with the pointer content, unless the user chose to keep existing content. Never copy `CLAUDE.md` into it.
 - Copy `hooks/user-reminders.md` into `.claude/hooks/` (create folders as needed) unless the user chose to keep their edited copy, and merge both settings entries per the User-reminders hook section.
 
-Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every template file whenever the `constitution` module is in play — `roadmap/` always holding the blank `v{{N}}-{{SLUG}}.md` — and each method file is the version the user chose, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
+Done when each selected module has exactly one marker block whose content matches the confirmed draft, `constitution-doc/` contains every doc whenever the `constitution` module is in play — `template/` always holding all four blanks, and `roadmap/` present, empty until the first version — and each method file is the version the user chose, `AGENTS.md` holds the pointer (or the content the user chose to keep), and `.claude/settings.json` carries exactly one user-reminders `UserPromptSubmit` entry and one `PostToolBatch` entry.
 
 ### 5. Done
 

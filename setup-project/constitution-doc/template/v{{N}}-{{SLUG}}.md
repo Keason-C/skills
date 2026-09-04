@@ -1,4 +1,4 @@
-<!-- TEMPLATE — a fixture: it stays here blank, so the next version file always has a shape to follow. To start a version, COPY this file to `v<N>-<slug>.md` and fill in the copy: replace every {{...}} with real content, add or drop Phases as needed, and delete all <!-- --> comments, this line included. A version's Status is recorded in `../mission.md`'s version table, not here. -->
+<!-- TEMPLATE — a fixture: it stays here blank, the reference for the shape a version file keeps. Copy it to `../roadmap/v<N>-<slug>.md` to start one, then fill in the copy: replace every {{...}} with real content, add or drop Phases as the version needs, and delete all <!-- --> comments, this line included. A version's Status is recorded in `../mission.md`'s version table, not here. -->
 
 # v{{N}} — {{VERSION_NAME}}
 
