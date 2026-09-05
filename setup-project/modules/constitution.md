@@ -6,6 +6,6 @@ Constitution docs live in `constitution-doc/`; `README.md` indexes them. Load th
 - **Before editing `constitution-doc/`**: read `CONVENTIONS.md`.
 - **Writing a doc here**: `template/` holds each doc's blank — reference for the intended shape; copy it to start one, and depart from it where the project needs it. The blanks stay.
 - **When the ask reaches past the current version** — new scope, a priority call, a "is this worth building": read `mission.md` before answering.
-- **Before adding a dependency, swapping a framework, or changing how it deploys**: read `tech-stack.md`.
+- **Before writing code, adding a dependency, swapping a framework, or changing how it deploys**: read `tech-stack.md` — choices, the stack conventions the code follows, deployment, what is ruled out.
 - **Edits that wait for the user**: `closed`, versions and Phases, `mission.md`, and `tech-stack.md`'s "Ruled out".
 - **A doc that disagrees with the code or with reality**: stop and surface it.

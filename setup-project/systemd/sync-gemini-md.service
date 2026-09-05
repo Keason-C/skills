@@ -1,0 +1,7 @@
+[Unit]
+Description=Two-way mirror CLAUDE.md <-> GEMINI.md in {{PROJECT_SLUG}}
+
+[Service]
+Type=oneshot
+WorkingDirectory={{PROJECT_ROOT}}
+ExecStart={{PROJECT_ROOT}}/.githooks/sync-gemini-md

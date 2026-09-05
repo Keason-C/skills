@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch CLAUDE.md and GEMINI.md in {{PROJECT_SLUG}} and re-sync on change
+
+[Path]
+PathChanged={{PROJECT_ROOT}}/CLAUDE.md
+PathChanged={{PROJECT_ROOT}}/GEMINI.md
+Unit=sync-gemini-md-{{PROJECT_SLUG}}.service
+
+[Install]
+WantedBy=default.target

@@ -1,4 +1,4 @@
-<!-- TEMPLATE — when filling in: replace every {{...}} with real content, delete the blocks this project has nothing for, and delete all <!-- --> comments, this line included. Defaults come from the manifests (pyproject / package.json / compose) and the stack modules already injected into CLAUDE.md. -->
+<!-- TEMPLATE — when filling in: replace every {{...}} with real content, delete the blocks this project has nothing for, and delete all <!-- --> comments, this line included. Defaults come from the manifests (pyproject / package.json / compose) and the stack module blocks /setup-project appends at the end of this file — they stay as the conventions the code follows; the table above records the decisions. -->
 
 # Tech stack
 
