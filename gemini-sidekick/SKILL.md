@@ -5,6 +5,10 @@ description: How to run Gemini headlessly through the agy CLI (single turn, mult
 
 `agy` is the Antigravity CLI on PATH. Auth was done once interactively and persists. It runs as a full agent in the current directory: reads `GEMINI.md` / `AGENTS.md` there, edits files, runs commands. `agy --help` lists every flag, `agy models` every model id; below is only what those do not tell you.
 
+`--model` is the user's pick: when they have not named one, ask before the first run.
+
+**Model is the user's call.** When the user has not named one, ask before the first run — offer the ids from `agy models` — and use their pick for every turn of that task. The `--model` values below are placeholders, never a default.
+
 ## Single turn
 
 ```bash
