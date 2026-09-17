@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "name": "codex-in-app-browser",
-  "token": "2e287b1dad873145e6dcc37f1ccc6a63ea92a18f3fc73c83b867e9c044b5fb5e",
-  "source": {
-    "packageVersion": "0.5.1",
-    "commit": "a71312d75284872d62b27f3e0ce8e21df6fa125c"
-  }
-}

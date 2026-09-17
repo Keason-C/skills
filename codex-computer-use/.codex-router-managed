@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "name": "codex-computer-use",
-  "token": "689215bd32cd721f9f6fdbb2c3209388b54e9a01918053ce7250606a6fe60122",
-  "source": {
-    "packageVersion": "0.5.1",
-    "commit": "a71312d75284872d62b27f3e0ce8e21df6fa125c"
-  }
-}

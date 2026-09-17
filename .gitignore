@@ -7,3 +7,11 @@ work-spec/
 
 # Company-internal (ZF) skills
 zf-*/
+
+# Built-in and codex-router-managed skills
+/.system/
+/codex-app-threads/
+/codex-computer-use/
+/codex-in-app-browser/
+/codex-router/
+/codex-router-media/

@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "name": "codex-router-media",
-  "token": "b9d374bf446cab3228bea28638c50c952a9314134c13c31e4ea9171a307c0b0b",
-  "source": {
-    "packageVersion": "0.5.1",
-    "commit": "a71312d75284872d62b27f3e0ce8e21df6fa125c"
-  }
-}
