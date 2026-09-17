@@ -33,4 +33,4 @@
 
 | Version | Status |
 | --- | --- |
-| [v{{N}}-{{SLUG}}](roadmap/v{{N}}-{{SLUG}}.md) | `{{planned|in-progress|awaiting-acceptance}}` |
+| [v{{N}}-{{SLUG}}](roadmap/v{{N}}-{{SLUG}}.md) | `{{planned|in-progress}}` |

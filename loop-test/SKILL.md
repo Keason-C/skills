@@ -21,5 +21,4 @@ Rules:
 - Stall guard: if the same failure persists after 3 fix attempts, or the loop reaches 10 total iterations, stop and report the blocker to the user instead of looping further.
 - Optional adversarial testing: based on task difficulty, spawn subagents to attack the work (edge cases, hostile inputs, attempts to break it); any bug they find enters the same fix loop. Skip for simple tasks.
 - Report briefly per iteration (what failed, root cause, what was changed) and at the end (iterations run, bugs fixed, final status).
-- Composes with /fable-lead: when both are active, fixing follows fable-lead's difficulty routing; the loop itself is led by the lead model.
 </loop-test>

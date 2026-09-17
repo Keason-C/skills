@@ -2,6 +2,24 @@
 
 Read before running any skill named below. Where this file and the skill's own instructions disagree, this file wins.
 
+## Shared rules
+
+Store local supporting documents (specs, tickets, research, and teaching
+material) under `.skills-doc/`, preserving each skill's subdirectory structure.
+For local tickets, replace `.scratch/` with `.skills-doc/`:
+`.skills-doc/<feature-slug>/issues/<NN>-<slug>.md`.
+Implementation code follows the project's normal layout.
+Keep project AGENTS.md pointers aligned with the actual document paths.
+
+Triage labels identify who acts next:
+
+- `ready-for-agent`: the next action can be performed by the agent.
+- `ready-for-human`: the next action needs a user decision, missing information
+  from the user, or an action only the user can perform.
+
+Don't pick up an issue on your own initiative in a session
+that is already doing something else.
+
 ## to-spec
 
 - **Default triage label is `ready-for-human`**, overriding the `ready-for-agent` the skill's own instructions apply.
@@ -12,16 +30,13 @@ Read before running any skill named below. Where this file and the skill's own i
 ## to-tickets
 
 - Every ticket carries a `**Type:**` line right below `**Status:**`. Known types: `task`, `research`, `grilling`, `prototype` — coin a new type when a ticket fits none of these.
-- `Status:` follows the acceptor — the executor is the other side: a human acceptor makes the ticket `ready-for-agent`; a ticket only a human can carry out is `ready-for-human`.
+- Every ticket carries an `**Effort Level:**` line below `**Type:**`: choose `medium`, `high`, `xhigh`, or `max` and show it in the proposed ticket list.
+- Set `Status:` or the tracker label by who acts next, using the shared triage definitions.
 
 ## grilling
 
-Put questions to the user through Claude Code's built-in question tool (`AskUserQuestion`) — don't ask in plain chat text. The tool accepts at most 4 questions per call, so a wider round goes out as consecutive calls — batch it, don't trim it.
+Use the current question tool within its availability and batch limits. If no suitable tool is available, ask a concise question in chat. Resolve the current batch before opening another; preserve the questions that remain.
 
 ## implement
 
-When an issue is done, leave a comment on it stating exactly which commits implemented it (list the commit hashes).
-
-## teach-skills
-
-Every file the teach skills generate goes under `.skills-doc/teach/` — nowhere else — and that folder must be git-ignored (add if missing).
+Apply YAGNI and minimum sufficient validation in place of implement's default full-suite testing requirement; finish when the requirements are met and the affected paths have been verified.

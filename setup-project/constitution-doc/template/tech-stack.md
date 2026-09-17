@@ -1,4 +1,4 @@
-<!-- TEMPLATE — when filling in: replace every {{...}} with real content, delete the blocks this project has nothing for, and delete all <!-- --> comments, this line included. Defaults come from the manifests (pyproject / package.json / compose) and the stack module blocks /setup-project appends at the end of this file — they stay as the conventions the code follows; the table above records the decisions. -->
+<!-- TEMPLATE — when filling in: replace the document placeholders with real content, delete unused template sections, and remove template guidance comments, this line included. Preserve every module block, including its opening and closing markers. Defaults come from the manifests (pyproject / package.json / compose) and the stack module blocks $setup-project appends at the end of this file — they stay as the conventions the code follows; the Core table records the decisions. -->
 
 # Tech stack
 

@@ -16,7 +16,7 @@
 
 ## Phase-1: {{FEAT_NAME}}
 
-Status: `{{planned|in-progress|awaiting-acceptance|closed}}`
+Status: `{{planned|in-progress|closed}}`
 
 Description: {{FEAT_DESC}}
 
@@ -24,7 +24,7 @@ Spec: {{SPEC_PATH|non-spec}}
 
 ## Phase-2: {{FEAT_NAME}}
 
-Status: `{{planned|in-progress|awaiting-acceptance|closed}}`
+Status: `{{planned|in-progress|closed}}`
 
 Description: {{FEAT_DESC}}
 
@@ -32,7 +32,7 @@ Spec: {{SPEC_PATH|non-spec}}
 
 ## Phase-3: {{FEAT_NAME}}
 
-Status: `{{planned|in-progress|awaiting-acceptance|closed}}`
+Status: `{{planned|in-progress|closed}}`
 
 Description: {{FEAT_DESC}}
 

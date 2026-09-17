@@ -12,4 +12,4 @@
 | [`CONVENTIONS.md`](CONVENTIONS.md) | how a doc here is written and when its content retires |
 | [`template/`](template/) | the blank of every doc here — the reference for the shape a doc keeps, and what a new one is copied from |
 
-ADRs: {{ADR_DIR}}. Specs and tickets: {{ISSUES_DIR}}. Archive: {{ARCHIVE_DIR}}.
+ADRs: {{ADR_DIR}}. Specs and tickets: {{ISSUES_DIR}}. Archive: root [`archive/`](../archive/).

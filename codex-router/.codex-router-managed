@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "codex-router",
+  "token": "df210b8268f386ba4dd59e297c2fc656670751dfaaabe82d8b768301ccdee78e",
+  "source": {
+    "packageVersion": "0.5.1",
+    "commit": "a71312d75284872d62b27f3e0ce8e21df6fa125c"
+  }
+}

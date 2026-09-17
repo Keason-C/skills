@@ -20,7 +20,7 @@ git diff
 git log --oneline | head -5   # match repo's existing message style
 ```
 
-If nothing is staged, stage everything with `git add -A` — unless the user asked to stage specific files only.
+Commit only within the user-approved scope. Inspect existing staged changes as well as the working tree; stage the task's files by explicit path. For a file containing unrelated edits, stage only the relevant hunks. Preserve unrelated staged and unstaged work; if an unrelated staged change cannot be excluded without disturbing the user's index, explain the conflict before committing. Verify the exact staged diff before the commit.
 
 ### Step 2: Commit with a Conventional Commits message
 

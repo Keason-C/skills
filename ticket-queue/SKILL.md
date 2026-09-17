@@ -1,211 +1,74 @@
 ---
 name: ticket-queue
-description: Unattended serial execution of a ticket queue (local Markdown ticket directory or GitHub issues) — three roles per ticket: the session judges, an implementer subagent builds, a fresh acceptor subagent verifies and triages the implementer's open items; the delegation mode (auto by difficulty, or a fixed model) is set once at start.
-disable-model-invocation: true
-argument-hint: <ticket-dir | GitHub repo/label> [--mode auto|fable|opus|sonnet] [ticket numbers ...]
+description: Orchestrate a ticket queue in a confirmed serial order or parallel waves, with delegated implementation, diagnosis, and integration. Explicit invocation only.
 ---
 
-# Serial ticket orchestration (unattended)
+# Ticket queue
 
-On invocation, the current session becomes the **judge** of an unattended run. Each ticket passes through three roles: an **implementer** subagent builds it, a fresh **acceptor** subagent verifies it independently and returns a **verdict**, and you rule on that verdict. You dispatch, read two short reports, rule, log — that is the whole job. Once startup is over no one is watching, and no answer will come if you ask: every branch resolves on your own and the run continues to the end.
+你是**指挥官**，负责规划、派工、读取结果、推进队列和按需记录。你的委派统一使用 Codex headless；角色内部的工作方式与下游委派由各自 AGENTS.md 和技能决定。
 
-## Startup
+指挥官可以读票据、规范、配置、Git 状态、commit 信息和最终回复；业务实现、门禁、诊断及合并交给对应角色，不亲自改业务代码、修测试或读业务 diff。
 
-1. **Ticket source** — from the invocation arguments (one of two):
-   - **Local directory**: a directory of ticket files whose names start with a number (e.g. `02-meta-request-billing.md`) and whose bodies carry a `**Status:**` field. Default queue = every ticket whose `**Status:**` is not `done`, in filename order.
-   - **GitHub issues**: a repo (optionally with a label/milestone filter). Build the queue with `gh issue list`; default = every matching open issue, in issue-number order.
+## 1. 确认计划
 
-   If ticket numbers are given as arguments, run only those.
+读取仓库 AGENTS.md、票据及引用的 spec、分工与规范，核对仓库、目标分支、HEAD、工作树和现有 PR。保留已有修改。
 
-2. **Delegation mode** — `--mode` if given; otherwise ask once with AskUserQuestion, options `auto` (Recommended), `fable`, `opus`, `sonnet`. This is the run's only question.
-   - A fixed mode names the model for implementer and acceptor alike; a failed ticket is logged, never escalated.
-   - `auto` grades every ticket **once, now**, from its title, type and scope, and records the grades in the run log's first entry. A grade is a **rung**:
+接受本地 Markdown 票或 GitHub issues。按用户范围和排除项收集队列；识别项目完成状态（包括 done、closed），GitHub 收集全部分页。按票号和依赖排序，并检查明显的修改范围重叠。
 
-     | rung | implementer | the ticket looks like |
-     |---|---|---|
-     | low | `sonnet` | doc-only, config, rename, single-file mechanical change, research |
-     | medium | `opus` | ordinary implementation with tests |
-     | high | `fable` | cross-module contract, state machine, concurrency, migration, marked high-risk, or design decisions the ticket leaves open |
+从项目和会话确定：仓库、目标分支、票源与范围、串行或并发模式、并发上限 N、各角色模型、备用执行模型、项目初始化与门禁、已有授权、记录路径。可选配置包括预期 HEAD、已授权采用的业务建议和检查间隔。需要用户填写时才读 [启动模板](references/run-template.md)。
 
-     Acceptor rung = the implementer's, floored at `opus`. Escalation ladder: `sonnet` → `opus` → `fable`.
+模型配置只在这里定义：
 
-3. **Derived paths** (local source: the ticket directory's parent; GitHub source: `.skills-doc/ticket-queue/` in the current repo; an explicit argument overrides either):
-   - Run log: `run-log.md`
-   - Contentious-decisions document: `contentious-decisions.md`
+| 角色 | 模型 | Effort |
+|---|---|---|
+| 执行、修复、诊断 | 使用本次确认的角色模型；备用执行使用已确认备用模型 | Ticket 指定值优先，否则继承当前主对话 |
+| 合并 | 默认继承编排者当前模型 | 默认继承编排者当前 effort |
 
-   Create either file if missing, with a title line only. Under the decisions document's title, add one explanatory sentence: per-ticket record of contentious decisions made during implementation — readings of ambiguous wording, review disagreements, trade-offs between viable approaches; a ticket with none records "none". All produced documents follow the language the tickets themselves are written in.
+用户明确指定的角色配置优先。必要值未知或不受支持时，在计划确认阶段补齐，不静默换模型或降级。提交、推送、远端评论和关票的权限在同次确认中列清，沿用已有授权；未获授权的动作保持待交付。
 
-## Judge discipline
+展示计划并等待明确确认：
 
-- After startup you read no ticket, run no command, write no code, run no review, make no commit. Your only write is the run log; your only reads are the reports the two roles send you.
-- **One ticket at a time, serial.** The decisions document is a shared append-only file and there is only one working tree — serial execution is the no-conflict precondition, not a performance trade-off.
-- Both roles are dispatched with the Agent tool (`subagent_type: "general-purpose"`, `model` per the delegation mode), each with its fixed block below as the prompt **verbatim**, replacing only the `{PLACEHOLDERS}`. Change nothing else in them. Later turns with a live agent go through SendMessage, using the judge messages below verbatim.
-- A ticket that blocks or asks a question is logged and left behind; the queue continues.
-- If an agent dies on an infrastructure error (API interruption etc.), resume the same agent once via SendMessage; if it dies again, log the ticket as failed and continue.
+- **串行：** 执行顺序、依赖和跳过项。
+- **并发：** N、每轮票据、分组依据、潜在重叠和轮内合并顺序。
 
-### Per-ticket loop
+配置确定且计划已确认后开工，自主推进。范围、分轮、依赖顺序或模型配置需要调整时，先确认修订计划；按已定规则跳过失败依赖不再确认。
 
-1. Dispatch the implementer with `{PRIOR_FINDINGS}` = `none`. Its return is the **build report**.
-2. Dispatch a fresh acceptor with the build report as `{IMPLEMENTER_REPORT}` and the reported hashes as `{COMMITS}`. Its return is the verdict.
-3. Rule on the verdict:
-   - `PASS` → send the implementer the **close-out** message; its reply is the final report. Go to 4.
-   - `FAIL`, implementer's feedback budget (2 rounds) remaining → send the implementer the **feedback** message; on its reply, send the acceptor the **re-review** message. Back to 3.
-   - `FAIL`, budget spent, mode `auto`, not yet escalated → dispatch a fresh implementer one rung up with `{PRIOR_FINDINGS}` = the last verdict, and a fresh acceptor at the matching rung. Back to 2.
-   - `FAIL` otherwise → send the implementer the **reject** message; its reply is the final report. Go to 4.
-   - The implementer disputes a finding → rule once on the ticket's letter, record the ruling in this ticket's run log entry, and forward it to the side that must act.
-4. Append this ticket's run log entry: ticket number, models and rungs used, rounds used, outcome, the last verdict's `VERDICT` / `GATES` / `TRIAGE` lines, the implementer's final report verbatim, commit hashes, judge rulings, and the `genuine` open items. Next ticket.
+## 2. 派工与推进
 
-**Completion criterion: queue exhausted → append a final entry** — every ticket's outcome and models, every commit produced, every escalation, and the consolidated list of `genuine` open items for the adjudicator. The run ends only once this entry is written.
-
-### Judge messages
-
-Feedback:
+首次派工前只读 [Headless 启动](references/headless.md)，确认所需 skills 可发现。执行方的任务提示词唯一模板：
 
 ```text
-Acceptance FAIL. Fix every finding below in a follow-up commit, then reply with
-what changed and the new commit hash(es). Dispute a finding only with reasoning
-against the ticket's letter.
-
-{VERDICT}
+$implement issue n
 ```
 
-Re-review:
+用真实票号替换 n，执行方自行查找票据并按 `$implement` 完成工作。
 
-```text
-The implementer replied as follows; re-check your findings against the new
-commit(s), re-run the gates, and return a fresh verdict in the same format.
+**一轮是一次合并委派的单位。** 串行每轮一票；并发每轮最多 N 票独立实现。等待本轮实现及必要修复全部结束，所有票已通过或明确阻塞后，才合并可交付部分。该轮交付完成后进入下一轮。
 
-{IMPLEMENTER_REPLY}
-```
+读取自然收尾、commit 信息和运行状态判断下一步；不强制回答字段、报告模板或决策清单。进入合并要求本票工作完成且必需门禁实际通过，或有用户已批准的明确例外。回复仍有本票未完成项时继续执行；信息不足时让原角色核实，进程正常退出本身不算通过。
 
-Close-out:
+按当前事件读取对应分支，不提前加载全部参考文件：
 
-```text
-Accepted. Close out the ticket: set its status to done, then give your final
-report.
-```
+- **实现未完成或门禁失败：** 读 [修复与诊断](references/diagnosis.md)。
+- **本轮可交付票就绪：** 读 [整轮合并](references/merge.md)，派一个合并方。
+- **会话中断、运行错误或需要续接：** 读 [恢复会话](references/recovery.md)。
 
-Reject:
+阻塞票保留现场并跳过依赖票，继续计划中的独立票。本轮没有可交付票时跳过空合并。
 
-```text
-Rejected after the feedback budget. Set the ticket's status to blocked, quoting
-the unresolved findings below, then give your final report.
+## 3. 等待与检查
 
-{VERDICT}
-```
+没有立即可推进的工作时保持会话等待，默认每 **30 分钟**集中检查一次所有在途任务：运行状态、最终回复、升级与合并进度。检查后推进或设置下次检查时间。
 
-## Fixed block — implementer
+使用会话等待工具，例如 `clock.sleep`。若宿主限制单次等待时长，可分段等待，但分段返回不触发进程／日志检查或等待状态播报。明确完成、失败事件或用户消息到来时可提前处理。
 
-```text
-Implement the work described in the ticket:
-  {TICKET_REF}
-(a local file path, or a GitHub issue — read the latter with `gh issue view`,
-including its comments).
+外部定时唤醒是可选实现，使用时保存任务标识；会话结束后的后台 sleep 不能代替真正唤醒。
 
-Findings from a previous attempt at this ticket: {PRIOR_FINDINGS}
+## 4. 状态、记录与结束
 
-Use Skill(skill="mattpocock-skills:tdd") where possible, at pre-agreed seams.
+在仓库外的私有运行目录维护 `run-log.md`，只保存恢复所需内容：已确认计划、当前轮次与票、会话／进程、worktree 与起始 HEAD、重试阶段、合并进度、阻塞和交付 commit。进程日志与最后回复保存在同目录。
 
-Run typechecking regularly, single test files regularly, and the full test suite
-once at the end.
+指挥官依据 commit 信息和最后回复，**按需**摘录明确提出且值得保留的待确认、关键假设、未完成或阻塞事项，保留原意与来源；已授权采用的业务建议按约定记录。没有事项就不创建决策条目。
 
-Once done, use Skill(skill="mattpocock-skills:code-review") to review the work,
-and act on the findings.
+默认决策文档：本地票放在票目录父目录的 `pending-decisions.md`；GitHub 票放在 `.skills-doc/ticket-queue/pending-decisions.md`。尊重已有路径，使用票据语言。指挥官集中维护记录；合并期间新记录暂存私有目录，交接后再纳入仓库，避免并发写入。
 
-Commit your work to the current branch. Stage by name the files you changed for
-this ticket — the tree may carry unrelated uncommitted work and untracked files,
-and those stay exactly as you found them. The commit message describes the
-change and ends there: no trailers of any kind.
-
-Then append one section for this ticket to:
-  {DECISIONS_PATH}
-Its audience is the human adjudicator, not another agent — write it in the
-same language the ticket itself is written in. Heading:
-`## Issue {ISSUE} — <short title> (commit <hash>)`. Numbered entries, one per
-contentious decision: readings you chose for ambiguous ticket wording, review
-disagreements and how they resolved, alternatives weighed and why the loser
-lost, deviations from the ticket's letter (mark these as needing sign-off), and
-refactors you rejected with reasons. A question the ticket, its spec or the
-repo's design docs already answer is settled here with the source cited; only
-a question none of them can answer is an open item, and gets its own bolded
-entry. Record "none" only if the ticket was genuinely uncontentious.
-
-Reply with a build report: what changed and why, gate results, commit
-hash(es), and the open items you are leaving for the adjudicator. An
-independent acceptor then verifies the work; the judge relays its findings.
-Fix findings in a follow-up commit, refresh the hashes in your decisions
-section, and reply with what changed and the new hash(es).
-
-When the judge tells you to close out, update the ticket's status:
-  - Local file: rewrite its `**Status:**` line in place — `done` with the
-    commit hash(es), branch and date, plus a one-line gate summary; or
-    `blocked` with the exact blocker. Commit this edit only if the ticket file
-    is already tracked by git; otherwise leave it uncommitted on disk.
-  - GitHub issue: if done, leave a comment stating exactly which commits
-    implemented it (hashes, branch, one-line gate summary), then close the
-    issue; if blocked, leave a comment stating the exact blocker and keep it
-    open.
-Then give your final report, in the same shape as the build report.
-```
-
-## Fixed block — acceptor
-
-```text
-You are the independent acceptor for ticket {ISSUE}:
-  {TICKET_REF}
-(a local file path, or a GitHub issue — read the latter with `gh issue view`,
-including its comments).
-
-Under review: commit(s) {COMMITS} on the current branch, and the section
-`## Issue {ISSUE}` in {DECISIONS_PATH}. The implementer's build report:
-
-{IMPLEMENTER_REPORT}
-
-You are read-only on the tree: your output is the verdict alone. Verify along
-three axes:
-
-1. Result — every acceptance criterion in the ticket, checked against the diff
-   (`git show {COMMITS}`) and against gates you run yourself: typecheck and
-   the full test suite. A gate result counts once you have run it. If the
-   ticket states no criteria, derive them from its deliverable and mark
-   `CRITERIA: derived`.
-
-2. Quality — the code follows the repo's documented standards (CLAUDE.md and
-   the design docs it points to); the commit(s) contain only this ticket's
-   files (`git show --stat`) and their messages carry no trailers; the
-   decisions section exists and matches the diff.
-
-3. Triage — every open item, escalation and deviation in the build report and
-   the decisions section gets exactly one label:
-   - genuine: needs a human or product decision the ticket, its spec and the
-     design docs cannot make. Keep it.
-   - resolvable: the ticket, spec or design docs already answer it. Resolve
-     it, cite the source, and turn it into a finding.
-   - drift: a departure from the ticket's letter or scope. Turn it into a
-     finding: revert, or justify against the ticket.
-   Only genuine items reach the adjudicator.
-
-Verdict format — nothing else:
-
-  VERDICT: PASS | FAIL
-  CRITERIA: stated | derived
-  GATES: <each gate you ran, with its result>
-  FINDINGS:
-    1. <file:line> — <what is wrong> — violates <criterion or standard>
-  TRIAGE:
-    - <item> — genuine | resolvable (<source>) | drift
-
-FAIL while any finding remains. On re-review you receive the implementer's
-reply and new commit hash(es): re-check the findings, re-run the gates, and
-return a fresh verdict in the same format.
-```
-
-## Why the blocks are written this way (read before editing them)
-
-1. **`Skill(...)` calls by full name, not slash commands.** Inside a dispatched prompt a slash command is inert text — the harness expands slash commands only in user input. The bare name `code-review` also resolves to a different skill: forked execution owned by the fork, which the ticket agent cannot stop once launched.
-2. **Staging by name and trailer-free messages are hard guardrails.** The tree may carry unrelated uncommitted work and untracked files; an unattended `git add -A` / `commit -a` would silently sweep them into the ticket's commit. Commit history is audited for authorship, so the message ends with the change it describes.
-3. **The acceptor is fresh per ticket and runs the gates itself.** A fork would inherit the judge's whole history and the attention cost that comes with it; a fresh agent holds one ticket and nothing else. Running the gates is what makes the verdict independent of the build report. The judge reads verdicts, never diffs — that is what keeps its attention intact across a long queue.
-4. **Triage exists to stop drift.** Without it every uncertainty is punted upward and the adjudicator's list fills with questions the docs already answer; with it, `genuine` is the only label that reaches a human.
-5. **Close-out happens after the verdict.** The ticket's status line then records the acceptor's ruling, not the implementer's self-assessment.
-6. **Status and decisions are written by the implementer itself, never transcribed by the judge.** The context behind each decision — the rejected alternatives, the reviewer's exact objection — lives only in the implementing agent; relaying it loses information. Serial execution guarantees conflict-free appends.
-7. **Language is not hardcoded.** The blocks are prompts to agents (English); the language of the decisions document and status updates follows the tickets' own language, judged by the agent — whatever language the tickets are written in is the language their adjudicator reads.
+每票最终标记已交付、待交付、阻塞或依赖跳过。全部结束，或没有运行任务且已无可推进工作时，停止等待并取消本次定时任务。简要说明交付、保留现场、阻塞及待发布事项；运行中的任务仍需等待。
