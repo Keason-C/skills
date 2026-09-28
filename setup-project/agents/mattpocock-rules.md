@@ -31,7 +31,7 @@ that is already doing something else.
 
 - Every ticket carries a `**Type:**` line right below `**Status:**`. Known types: `task`, `research`, `grilling`, `prototype` — coin a new type when a ticket fits none of these.
 - Every ticket carries an `**Effort Level:**` line below `**Type:**`: choose `medium`, `high`, `xhigh`, or `max` and show it in the proposed ticket list.
-- Set `Status:` or the tracker label by who acts next, using the shared triage definitions.
+- Every ticket carries an `**Owner:**` line below `**Effort Level:**`: `gpt` for backend-heavy work, `claude` for UI-heavy work; show it in the proposed ticket list. The owner builds the whole vertical slice, so the ticket stays verifiable on its own.
 
 ## grilling
 

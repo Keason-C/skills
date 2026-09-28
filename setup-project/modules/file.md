@@ -1,9 +1,10 @@
 # File
 
-Paths are relative to the project root.
+Paths are relative to the project root unless marked absolute.
 
 | Path | Purpose / when to read |
 | --- | --- |
+| `/tmp/<project>-<task>-*/` (absolute) | One-off scripts, probe outputs, and intermediate files; create with `mktemp -d`. |
 | `.design/` | Mockups, diagrams, and prototypes for visual design work. |
 | `.skills-doc/` | Local specs, tickets, research, and teaching material for the current work item. |
 | `archive/` | Retired materials; historical reference on demand. |

@@ -5,7 +5,7 @@ description: Orchestrate a ticket queue in a confirmed serial order or parallel 
 
 # Ticket queue
 
-你是**指挥官**，负责规划、派工、读取结果、推进队列和按需记录。你的委派统一使用 Codex headless；角色内部的工作方式与下游委派由各自 AGENTS.md 和技能决定。
+你是**指挥官**，负责规划、派工、读取结果、推进队列和维护运行日志。你的委派统一使用 Codex headless；角色内部的工作方式与下游委派由各自 AGENTS.md 和技能决定。
 
 指挥官可以读票据、规范、配置、Git 状态、commit 信息和最终回复；业务实现、门禁、诊断及合并交给对应角色，不亲自改业务代码、修测试或读业务 diff。
 
@@ -15,7 +15,7 @@ description: Orchestrate a ticket queue in a confirmed serial order or parallel 
 
 接受本地 Markdown 票或 GitHub issues。按用户范围和排除项收集队列；识别项目完成状态（包括 done、closed），GitHub 收集全部分页。按票号和依赖排序，并检查明显的修改范围重叠。
 
-从项目和会话确定：仓库、目标分支、票源与范围、串行或并发模式、并发上限 N、各角色模型、备用执行模型、项目初始化与门禁、已有授权、记录路径。可选配置包括预期 HEAD、已授权采用的业务建议和检查间隔。需要用户填写时才读 [启动模板](references/run-template.md)。
+从项目和会话确定：仓库、目标分支、票源与范围、串行或并发模式、并发上限 N、各角色模型、备用执行模型、项目初始化与门禁、已有授权、私有运行目录。可选配置包括预期 HEAD 和检查间隔。需要用户填写时才读 [启动模板](references/run-template.md)。
 
 模型配置只在这里定义：
 
@@ -66,9 +66,5 @@ $implement issue n
 ## 4. 状态、记录与结束
 
 在仓库外的私有运行目录维护 `run-log.md`，只保存恢复所需内容：已确认计划、当前轮次与票、会话／进程、worktree 与起始 HEAD、重试阶段、合并进度、阻塞和交付 commit。进程日志与最后回复保存在同目录。
-
-指挥官依据 commit 信息和最后回复，**按需**摘录明确提出且值得保留的待确认、关键假设、未完成或阻塞事项，保留原意与来源；已授权采用的业务建议按约定记录。没有事项就不创建决策条目。
-
-默认决策文档：本地票放在票目录父目录的 `pending-decisions.md`；GitHub 票放在 `.skills-doc/ticket-queue/pending-decisions.md`。尊重已有路径，使用票据语言。指挥官集中维护记录；合并期间新记录暂存私有目录，交接后再纳入仓库，避免并发写入。
 
 每票最终标记已交付、待交付、阻塞或依赖跳过。全部结束，或没有运行任务且已无可推进工作时，停止等待并取消本次定时任务。简要说明交付、保留现场、阻塞及待发布事项；运行中的任务仍需等待。
