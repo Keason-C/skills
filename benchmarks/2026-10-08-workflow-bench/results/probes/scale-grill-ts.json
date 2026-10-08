@@ -1,0 +1,6 @@
+{
+"independent_20k_c4": 146,
+"chain_5k": 60,
+"chain_5k_reverse_add": 62,
+"fanout_1_to_10k_fail_cascade": 157,
+"diamond_layers_200x20": 134}

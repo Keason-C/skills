@@ -1,0 +1,141 @@
+{
+  "run": "pstack-ts",
+  "loc_src": 541,
+  "loc_tests": 2365,
+  "lizard": {
+    "functions": 44,
+    "avg_ccn": 1.93,
+    "max_ccn": 10,
+    "ccn_over_10": 0,
+    "max_fn_nloc": 28,
+    "avg_fn_nloc": 4.7
+  },
+  "typecheck_ok": true,
+  "typecheck_tail": "",
+  "any_count": 0,
+  "hidden": {
+    "basics": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "cancel": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    },
+    "cycle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "deps": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "events": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "hygiene": {
+      "pass": 11,
+      "fail": 0,
+      "failed": []
+    },
+    "idle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "order": {
+      "pass": 15,
+      "fail": 0,
+      "failed": []
+    },
+    "po": {
+      "pass": 42,
+      "fail": 0,
+      "failed": []
+    },
+    "retry": {
+      "pass": 10,
+      "fail": 0,
+      "failed": []
+    },
+    "timeout": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "validation": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "hidden_unhandled": false,
+  "own_tests": {
+    "add": {
+      "pass": 40,
+      "fail": 0,
+      "failed": []
+    },
+    "cancellation": {
+      "pass": 18,
+      "fail": 0,
+      "failed": []
+    },
+    "construction": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "dispatch": {
+      "pass": 20,
+      "fail": 0,
+      "failed": []
+    },
+    "events": {
+      "pass": 16,
+      "fail": 0,
+      "failed": []
+    },
+    "hygiene": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "idle": {
+      "pass": 15,
+      "fail": 0,
+      "failed": []
+    },
+    "results": {
+      "pass": 16,
+      "fail": 0,
+      "failed": []
+    },
+    "retries": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "smoke": {
+      "pass": 10,
+      "fail": 0,
+      "failed": []
+    },
+    "timeouts": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_coverage_pct": 100,
+  "git": {
+    "commits": 6,
+    "uncommitted_files": 0
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "model": "claude-opus-5-5",
+  "mapping": {
+    "X": "pstack",
+    "Y": "matt",
+    "Z": "grill"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 7,
+        "readability": 8,
+        "maintainability": 7,
+        "robustness": 6,
+        "tests": 8,
+        "docs": 8,
+        "overall": 7,
+        "bugs": [
+          "Evaluation is a recursive AST walk. Deep nesting depends on temporarily raising sys.recursionlimit to 20000, which can overflow the C stack on some platforms or threads. A RecursionError during evaluation is silently turned into #VALUE! instead of a defined behaviour.",
+          "Every structural edit rebuilds all indexes and recalculates the whole sheet (about 1–1.4 s at 50k cells). This is documented, but it scales poorly and calls self.__init__() to reset state.",
+          "Whitespace around a range's ':' (A1 : B2) does not form a range token, so such formulas are #PARSE! (a minor divergence)."
+        ],
+        "strengths": [
+          "Clean, small modules with clear ownership (_errors, _grid, _values, _functions, _formula, _index, _sheet).",
+          "Iterative Tarjan over the dependents graph, with a correct self-loop and cycle-breaking design.",
+          "The tokenizer never raises, so even unparseable formulas get their references rewritten.",
+          "The pure function registry with arity makes adding a function trivial.",
+          "Strong tests: a black-box suite written from the brief plus a decisions suite that pins every open choice, including perf and huge sparse ranges."
+        ],
+        "weaknesses": [
+          "Relies on recursion-limit manipulation instead of an iterative evaluator.",
+          "Structural edits are non-incremental.",
+          "The tiled range index falls back to a linear 'untiled' list for large ranges, which every lookup scans.",
+          "There are almost no docstrings in the code, and tools/bench.py is dense one-liners."
+        ]
+      },
+      "Y": {
+        "design": 8,
+        "readability": 7,
+        "maintainability": 7,
+        "robustness": 7,
+        "tests": 7,
+        "docs": 8,
+        "overall": 7,
+        "bugs": [
+          "copy() iterates every coordinate of the source block, not just populated cells, so copying a huge sparse range (for example a whole column) means millions of iterations.",
+          "API addresses accept leading-zero rows ('A01') and copy silently strips '$'. This is lenient but documented."
+        ],
+        "strengths": [
+          "No recursion anywhere: a shunting-yard parser, compilation driven by an explicit stack, and a flat stack VM with jumps for IF and IFERROR.",
+          "Incremental structural edits that rewrite and recompile only affected formulas, seeded with dependents of removed cells.",
+          "A per-axis multi-resolution range bucket index avoids pathological scans for tall ranges.",
+          "SCC ordering restricted to formula cells avoids O(n²) literal edges.",
+          "The rewriter keeps whitespace around ':' and works leniently on unparseable text."
+        ],
+        "weaknesses": [
+          "The stringly-typed instruction tuples and op dispatch in the VM are harder to extend than a registry with arity.",
+          "Function arity lives in _formula.ARITY while the implementations live in _evaluator.FUNCTIONS, which splits one concern across two modules.",
+          "The test suite is smaller and less systematic than the others, though it covers the key tricky cases.",
+          "_structural is long and mixes several responsibilities."
+        ]
+      },
+      "Z": {
+        "design": 9,
+        "readability": 7,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 9,
+        "docs": 9,
+        "overall": 8,
+        "bugs": [
+          "Formulas that fail to parse are never rewritten by structural edits or copy. Their reference text then silently points at different cells after rows or columns move. This is a documented decision, but it contradicts 'formulas everywhere are rewritten'.",
+          "When a rewritten range token is written out, the original whitespace around ':' is dropped. This is minor and documented."
+        ],
+        "strengths": [
+          "Fully iterative pipeline (lexer → shunting-yard → codegen → VM) that never touches the recursion limit.",
+          "Kahn's algorithm orders the acyclic part and Tarjan runs only on the leftover. Value-change-driven dirty propagation skips unaffected downstream cells, and there is a fast path for edits nobody reads.",
+          "A dyadic 2-D range index scales to whole-grid ranges.",
+          "Structural edits are incremental: compiled code is relocated rather than re-parsed, and only lossy references trigger recalculation.",
+          "Excellent tests, including a randomized differential test against freshly built sheets and change-list verification, plus thorough edge-case and performance tests.",
+          "Very thorough NOTES with explicit rationale for each decision."
+        ],
+        "weaknesses": [
+          "Highest complexity: GC-motivated tuple encodings, operand tuples overloaded as references, and many `type: ignore` comments hurt readability.",
+          "Cell.cyclic state and the dirty/settle logic carry subtle invariants that a newcomer must understand before changing recalculation.",
+          "The process-global address cache is a small piece of hidden state."
+        ]
+      }
+    },
+    "ranking": [
+      "Z",
+      "Y",
+      "X"
+    ],
+    "rationale": "Z has the most scalable and robust architecture: fully iterative, an incremental structural path that is verified by a differential test, and a range index that handles whole-grid ranges. It also has the strongest tests and docs, at the cost of noticeable complexity. Y achieves the same no-recursion and incremental-structural goals with a simpler but less cohesive layout and a lighter test suite, and its copy path is dense over huge sparse blocks. X is the most readable and has an excellent behavioural test suite. It ranks last because its recursive evaluator depends on raising the recursion limit and every structural edit recalculates the whole sheet."
+  },
+  "raw": null
+}

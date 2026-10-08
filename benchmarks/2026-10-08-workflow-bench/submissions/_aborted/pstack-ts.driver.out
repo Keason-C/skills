@@ -1,0 +1,4 @@
+[18:05:48] turn 1 start (resume=None)
+[18:27:57] turn 1 end rc=0 secs=1329 cost=7.1703494999999995 subtype=success last="The independent reviewer is still running. Everything up to this point is committed. I'll act on its findings when it reports."
+[18:28:06] PO relay answer: "Thanks for the update. No questions to answer here, so go ahead and act on the reviewer's findings when they come in. If any of them raise a behaviour question the brief doesn't settle, ask me specifically and I'll decide."
+[18:28:06] turn 2 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)

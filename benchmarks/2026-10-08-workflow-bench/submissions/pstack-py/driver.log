@@ -1,0 +1,3 @@
+[18:29:13] turn 1 start (resume=None)
+[19:41:44] turn 1 end rc=0 secs=4351 cost=14.291599 subtype=success last='ne test in the independent suite was corrected after it saw the code. The arithmetic for that correction is above.\n- Raising the recursion limit changes a setting shared by the whole Python process for the length of each call. Running one `Sheet` from several threads at once is not safe.\n\nBENCH-DONE'
+[19:41:44] ALL DONE wall=4351s

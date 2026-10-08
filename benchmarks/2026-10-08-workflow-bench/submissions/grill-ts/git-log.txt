@@ -1,0 +1,10 @@
+a972454 2026-10-08 18:27:16 +0000 Address review: shared unhandled-rejection guard, firstDeadDep helper, clearer names
+961d5e8 2026-10-08 18:22:27 +0000 Cover remaining spec edge cases: plain return values, self-cancel, paused timeouts
+315f5ac 2026-10-08 18:21:27 +0000 Rewrite taskflow spec in the standard spec format
+953bded 2026-10-08 18:19:57 +0000 Idle/re-entrancy tests, iterative graph walks, NOTES.md
+2042f99 2026-10-08 18:17:40 +0000 Cancellation, cycle detection and input validation
+88eddf2 2026-10-08 18:16:24 +0000 Retries with exponential backoff and per-attempt timeouts
+3d0c995 2026-10-08 18:14:56 +0000 Dependencies, priority ready queue, failure cascade, onIdle
+0213ca1 2026-10-08 18:12:47 +0000 Scheduler backbone: dispatch, concurrency, pause, events, idle edge
+ad2dc0b 2026-10-08 18:09:16 +0000 Record taskflow spec decisions from grilling session
+4fa6cb3 2026-10-08 18:05:46 +0000 starter

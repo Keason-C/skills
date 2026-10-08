@@ -1,0 +1,4 @@
+[18:05:47] turn 1 start (resume=None)
+[18:26:32] turn 1 end rc=0 secs=1245 cost=5.7639282000000005 subtype=success last="Implementation is still in progress (no commits yet on its branch). I'll resume when the delegate reports back."
+[18:26:40] PO relay answer: 'No questions there, so nothing to decide. Sounds good. Send me specific questions if anything comes up.'
+[18:26:40] turn 2 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)

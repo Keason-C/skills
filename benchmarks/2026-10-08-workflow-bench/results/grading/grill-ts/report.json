@@ -1,0 +1,141 @@
+{
+  "run": "grill-ts",
+  "loc_src": 468,
+  "loc_tests": 911,
+  "lizard": {
+    "functions": 36,
+    "avg_ccn": 2.25,
+    "max_ccn": 18,
+    "ccn_over_10": 2,
+    "max_fn_nloc": 41,
+    "avg_fn_nloc": 5.0
+  },
+  "typecheck_ok": true,
+  "typecheck_tail": "",
+  "any_count": 1,
+  "hidden": {
+    "basics": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "cancel": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    },
+    "cycle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "deps": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "events": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "hygiene": {
+      "pass": 11,
+      "fail": 0,
+      "failed": []
+    },
+    "idle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "order": {
+      "pass": 15,
+      "fail": 0,
+      "failed": []
+    },
+    "po": {
+      "pass": 42,
+      "fail": 0,
+      "failed": []
+    },
+    "retry": {
+      "pass": 10,
+      "fail": 0,
+      "failed": []
+    },
+    "timeout": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "validation": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "hidden_unhandled": false,
+  "own_tests": {
+    "cancel": {
+      "pass": 6,
+      "fail": 0,
+      "failed": []
+    },
+    "dependencies": {
+      "pass": 3,
+      "fail": 0,
+      "failed": []
+    },
+    "edge-cases": {
+      "pass": 7,
+      "fail": 0,
+      "failed": []
+    },
+    "events": {
+      "pass": 5,
+      "fail": 0,
+      "failed": []
+    },
+    "failure": {
+      "pass": 7,
+      "fail": 0,
+      "failed": []
+    },
+    "idle-and-reentrancy": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "lifecycle": {
+      "pass": 10,
+      "fail": 0,
+      "failed": []
+    },
+    "priority": {
+      "pass": 4,
+      "fail": 0,
+      "failed": []
+    },
+    "retries": {
+      "pass": 5,
+      "fail": 0,
+      "failed": []
+    },
+    "timeouts": {
+      "pass": 5,
+      "fail": 0,
+      "failed": []
+    },
+    "validation": {
+      "pass": 18,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_coverage_pct": 100,
+  "git": {
+    "commits": 9,
+    "uncommitted_files": 0
+  }
+}

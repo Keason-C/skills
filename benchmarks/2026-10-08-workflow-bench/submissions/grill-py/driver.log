@@ -1,0 +1,15 @@
+[18:05:45] turn 1 start (resume=None)
+[18:08:45] turn 1 end rc=0 secs=180 cost=0.4654568 subtype=success last='ets** (pytest timing tests standing in for the hidden ones):\n- A sheet with 50,000 populated cells: 5,000 edits to unrelated cells in under 1 second.\n- A chain of 50,000 dependent cells: building it and then editing its head in under 3 seconds total, with no `RecursionError`.\n\n➡️ Yes, those budgets.'
+[18:09:00] PO relay answer: '1. Yes.\n2. Yes, all of the above.\n3. Use `format(x, ".15g")` as is, with the **lowercase** exponent Python produces. So `1e20` → `"1e+20"`. The rest is right: `3` → `"3"`, `0.1+0.2` → `"0.3"`, `-0.0` → `"0"`.\n4. Yes.\n5. Yes.\n6. Yes.\n7. Yes, with one change: `0^0` is `1`, not an error. The rest stand'
+[18:09:00] turn 2 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)
+[18:09:34] turn 2 end rc=0 secs=34 cost=0.6696558 subtype=success last='Yes.\n\n---\n\n❓ **Q22** - **Unary `+`**: In Excel, unary `+` does nothing, so `=+"a"` gives `"a"`. I\'d make it arithmetic, like unary `-`, so it converts to a number:\n- `=+"12"` is `12.0`\n- `=+TRUE` is `1.0`\n- `=+"a"` is `#VALUE!`\n- `=+A1` with A1 empty is `0.0`\n\n➡️ Yes, unary `+` converts to a number.'
+[18:09:43] PO relay answer: '19. Yes.\n\n20. Yes.\n\n21. Yes.\n\n22. Yes.'
+[18:09:43] turn 3 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)
+[18:10:08] turn 3 end rc=0 secs=25 cost=0.7507812 subtype=success last="es everything.\n\n**Performance targets**\n- On a 50,000-cell sheet, 5,000 edits to unrelated cells take under 1 second.\n- Building a 50,000-cell dependency chain and then editing its head takes under 3 seconds.\n\nIs this our shared understanding? If so, I'll write the spec and start on the first slice."
+[18:10:08] grilling finished after 2 answered rounds
+[18:10:08] turn 4 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)
+[18:11:33] turn 4 end rc=0 secs=85 cost=1.079704 subtype=success last="the internals stay free to change. If you want unit tests on an internal piece (for example the code that rewrites references), say so and I'll add it as a second seam.\n\nWhen you give the go-ahead, I'll create the `gridcalc` branch and build test-first, one slice per commit, starting with addresses."
+[18:11:33] spec: /arena/.scratch/gridcalc/spec.md
+[18:11:33] turn 5 start (resume=4da3aec8-79ca-50f2-9ac6-4e96a03255cd)
+[19:03:34] turn 5 end rc=0 secs=3120 cost=12.350280599999998 subtype=success last='randomized test (`tests/test_differential.py`). It applies random edits and checks every value against a sheet rebuilt from scratch, as a guard on the recalculation shortcuts. Beyond the 40 seeds in the suite, 800 more passed with no failures.\n\nThe spec is in `.scratch/gridcalc/spec.md`.\n\nBENCH-DONE'
+[19:03:34] ALL DONE wall=3469s

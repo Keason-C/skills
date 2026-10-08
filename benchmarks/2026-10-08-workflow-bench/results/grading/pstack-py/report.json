@@ -1,0 +1,84 @@
+{
+  "run": "pstack-py",
+  "loc_src": 901,
+  "loc_tests": 1165,
+  "lizard": {
+    "functions": 101,
+    "avg_ccn": 3.55,
+    "max_ccn": 17,
+    "ccn_over_10": 2,
+    "max_fn_nloc": 49,
+    "avg_fn_nloc": 7.3
+  },
+  "ruff_tail": "gridcalc/_sheet.py:282:5: C901 `_components_in_eval_order` is too complex (13 > 10)\ngridcalc/_sheet.py:329:89: E501 Line too long (93 > 88)\nFound 16 errors.",
+  "ruff_issues": 16,
+  "hidden": {
+    "test_copy": {
+      "pass": 26,
+      "fail": 0,
+      "failed": []
+    },
+    "test_cycles": {
+      "pass": 20,
+      "fail": 0,
+      "failed": []
+    },
+    "test_errors": {
+      "pass": 41,
+      "fail": 0,
+      "failed": []
+    },
+    "test_functions": {
+      "pass": 67,
+      "fail": 0,
+      "failed": []
+    },
+    "test_literals": {
+      "pass": 52,
+      "fail": 0,
+      "failed": []
+    },
+    "test_operators": {
+      "pass": 47,
+      "fail": 0,
+      "failed": []
+    },
+    "test_perf": {
+      "pass": 7,
+      "fail": 0,
+      "failed": []
+    },
+    "test_po": {
+      "pass": 114,
+      "fail": 0,
+      "failed": []
+    },
+    "test_recalc": {
+      "pass": 42,
+      "fail": 0,
+      "failed": []
+    },
+    "test_structural": {
+      "pass": 47,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_tests": {
+    "test_brief": {
+      "pass": 299,
+      "fail": 0,
+      "failed": []
+    },
+    "test_decisions": {
+      "pass": 87,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_coverage_pct": "95",
+  "git": {
+    "commits": 2,
+    "uncommitted_files": 0
+  }
+}

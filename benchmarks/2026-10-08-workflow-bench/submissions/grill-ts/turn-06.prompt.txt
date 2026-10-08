@@ -1,0 +1,10 @@
+/implement the spec at /arena/.scratch/taskflow/spec.md.
+
+Build the library specified in /arena/BRIEF.md. The starter code and toolchain are already in /arena (a git repo). Node 22 + TypeScript; `npm test` (vitest) and `npm run typecheck` (tsc) are set up and node_modules is already installed (there is no network for installing packages).
+
+Working conditions:
+- You are working unattended: the user has gone to bed and will review the result in the morning. Do not stop to wait for the user.
+- The user's product owner is reachable from the shell: `ask-po "your question"` prints their answer (it can take a minute). Use it for requirement/behaviour questions the brief leaves open.
+- Work only inside /arena. There is no internet access.
+- Commit your finished work to the git repo in /arena.
+- When the whole job is complete, end your final message with a line containing exactly BENCH-DONE.

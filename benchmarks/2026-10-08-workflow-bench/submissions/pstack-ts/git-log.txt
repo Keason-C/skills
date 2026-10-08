@@ -1,0 +1,7 @@
+6e4cad8 2026-10-08 19:21:16 +0000 Correct NOTES on timers, event delivery and test provenance
+3e598a1 2026-10-08 19:07:47 +0000 Remove explanatory comments in favour of names
+7e99f55 2026-10-08 19:03:20 +0000 Fix cascade test expectations, add NOTES and mutation check
+4210b21 2026-10-08 18:48:50 +0000 Merge branch 'tests'
+0c1582d 2026-10-08 18:47:57 +0000 Add black-box acceptance suite for taskflow
+83d5ea3 2026-10-08 18:45:39 +0000 Implement taskflow scheduler with smoke tests
+49e7dc3 2026-10-08 18:29:15 +0000 starter

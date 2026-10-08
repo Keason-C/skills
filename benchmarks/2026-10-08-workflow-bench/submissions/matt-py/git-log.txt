@@ -1,0 +1,3 @@
+69f0928 2026-10-08 18:36:11 +0000 Address review: lenient reference rewriting, private eval context, per-axis range index
+31706f4 2026-10-08 18:26:18 +0000 Implement gridcalc spreadsheet engine
+ba7f095 2026-10-08 18:05:43 +0000 starter

@@ -1,0 +1,119 @@
+{
+  "run": "grill-py",
+  "loc_src": 1444,
+  "loc_tests": 1437,
+  "lizard": {
+    "functions": 117,
+    "avg_ccn": 4.18,
+    "max_ccn": 24,
+    "ccn_over_10": 8,
+    "max_fn_nloc": 54,
+    "avg_fn_nloc": 9.5
+  },
+  "ruff_tail": "gridcalc/_rewrite.py:116:89: E501 Line too long (90 > 88)\nFound 12 errors.\nNo fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).",
+  "ruff_issues": 12,
+  "hidden": {
+    "test_copy": {
+      "pass": 26,
+      "fail": 0,
+      "failed": []
+    },
+    "test_cycles": {
+      "pass": 20,
+      "fail": 0,
+      "failed": []
+    },
+    "test_errors": {
+      "pass": 41,
+      "fail": 0,
+      "failed": []
+    },
+    "test_functions": {
+      "pass": 67,
+      "fail": 0,
+      "failed": []
+    },
+    "test_literals": {
+      "pass": 52,
+      "fail": 0,
+      "failed": []
+    },
+    "test_operators": {
+      "pass": 47,
+      "fail": 0,
+      "failed": []
+    },
+    "test_perf": {
+      "pass": 7,
+      "fail": 0,
+      "failed": []
+    },
+    "test_po": {
+      "pass": 114,
+      "fail": 0,
+      "failed": []
+    },
+    "test_recalc": {
+      "pass": 42,
+      "fail": 0,
+      "failed": []
+    },
+    "test_structural": {
+      "pass": 47,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_tests": {
+    "test_addresses": {
+      "pass": 52,
+      "fail": 0,
+      "failed": []
+    },
+    "test_copy": {
+      "pass": 50,
+      "fail": 0,
+      "failed": []
+    },
+    "test_differential": {
+      "pass": 40,
+      "fail": 0,
+      "failed": []
+    },
+    "test_formulas": {
+      "pass": 121,
+      "fail": 0,
+      "failed": []
+    },
+    "test_functions": {
+      "pass": 147,
+      "fail": 0,
+      "failed": []
+    },
+    "test_literals": {
+      "pass": 34,
+      "fail": 0,
+      "failed": []
+    },
+    "test_performance": {
+      "pass": 6,
+      "fail": 0,
+      "failed": []
+    },
+    "test_recalc": {
+      "pass": 25,
+      "fail": 0,
+      "failed": []
+    },
+    "test_structural": {
+      "pass": 73,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_coverage_pct": "99",
+  "git": {
+    "commits": 9,
+    "uncommitted_files": 0
+  }
+}

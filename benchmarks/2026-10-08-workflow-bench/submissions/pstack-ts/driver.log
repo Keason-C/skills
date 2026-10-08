@@ -1,0 +1,3 @@
+[18:29:15] turn 1 start (resume=None)
+[19:21:36] turn 1 end rc=0 secs=3142 cost=14.022765000000003 subtype=success last='spots.** The same session that built the code wrote the mutation script. It has no planted bug for event-delivery timing or for the contents of the cycle array.\n- **Decision log written in batches.** The decision trail was written in batches after the fact, not as each decision was made.\n\nBENCH-DONE'
+[19:21:37] ALL DONE wall=3142s

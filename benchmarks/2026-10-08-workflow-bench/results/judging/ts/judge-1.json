@@ -1,0 +1,88 @@
+{
+  "model": "claude-fable-5-1",
+  "mapping": {
+    "X": "pstack",
+    "Y": "matt",
+    "Z": "grill"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 8,
+        "readability": 7,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 9,
+        "docs": 8,
+        "bugs": [],
+        "strengths": [
+          "Phase discriminated union carries exactly the data each state needs; stale-attempt check (task.phase.attempt === attempt) uniformly covers cancel, timeout and late settles",
+          "Transaction + deferred event queue keeps the documented event order even when listeners re-enter the scheduler (nested calls' events land after the outer step's events)",
+          "Binary heap ready queue with lazy invalidation; iterative cycle search; Object.fromEntries for __proto__-safe ctx.deps; thorough option validation",
+          "Outstanding test suite: controlled/scripted harness, timer accounting, global-timer and Date.now spies, unhandled-rejection trap via macrotask, re-entrancy and ready-moment tests, claimed mutation script"
+        ],
+        "weaknesses": [
+          "Zero comments or docstrings in src; transaction/flush/pump interplay (flushing guard, moment counter, idleBefore loop) must be learned from NOTES.md",
+          "Cycle detection walks the whole reachable graph on every add (O(n) per add, O(n^2) for long chains), and dependenciesSucceeded re-scans deps on every release instead of counting",
+          "Cascade cause uses BFS-nearest dependency while add-time cancellation uses first-in-deps-order, a small inconsistency the notes admit",
+          "Single ~450-line file; the inline heap could have been a reusable module"
+        ]
+      },
+      "Y": {
+        "design": 5,
+        "readability": 6,
+        "maintainability": 6,
+        "robustness": 6,
+        "tests": 6,
+        "docs": 7,
+        "bugs": [
+          "findCycle in internal.ts is recursive and copies the path on every step ([...path, node]); adding to the end of a long dependency chain (~10k) overflows the stack and is O(n^2) per add",
+          "dispatch() picks the next task by linearly scanning the queued Set, so draining n queued tasks is O(n^2)",
+          "finish() emits the failure/cancel event before cascade() changes dependents' states, so a failure listener observes dependents still 'waiting' although they are about to be cancelled (inconsistent with the 'state first' story elsewhere)"
+        ],
+        "strengths": [
+          "Compact and straightforward; operate()/dispatchAndCheckIdle depth pattern is easy to follow",
+          "busy flag makes onIdle() called from the last success listener resolve after the idle event, a thoughtful edge",
+          "Attempt-token approach and stopAttempt/clearBackoff keep timer hygiene correct; abort-listener re-cancel guarded in attemptFailed",
+          "Reasonable docstrings on methods and a NOTES.md that lists decisions and confirms them with the PO"
+        ],
+        "weaknesses": [
+          "Flat Task bag of mutable fields (attemptToken, controller, timeoutTimer, backoffTimer, value, error) rather than a state-carrying structure; invariants between them are implicit",
+          "Several very long lines (doomedBy lookup, validation) hurt readability",
+          "Thinner tests: no unhandled-rejection or global-timer hygiene checks, no deep-chain or re-entrant-from-run scenarios, no __proto__ dep",
+          "Unsubscribe by indexOf removes only the first registration of a duplicated listener"
+        ]
+      },
+      "Z": {
+        "design": 9,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 8,
+        "docs": 8,
+        "bugs": [
+          "In failAttempt, when a timed-out attempt's abort listener synchronously cancels the task, the 'retry' event is still emitted afterwards for an already-cancelled task (Y guards this case; Z does not)"
+        ],
+        "strengths": [
+          "Best algorithmic choices: unmet counters give O(1) readiness, forwardRefs map handles late deps, cycle search short-circuits unless an existing forward reference to the new id exists, generic Heap for dispatch; all graph walks iterative and a 20k-chain test proves it",
+          "Commit-then-emit discipline: states, cascade, slot release and abort are all applied before any event, so listeners always observe final states",
+          "Clean module boundaries (Emitter, Heap) with docstrings on fields and methods; defensive TypeError validation of id/run/deps",
+          "Focused tests with expectNoUnhandledRejections in every file, snapshot-emit semantics, self-cancel from run, randomized 300-task priority ordering, deep cascade"
+        ],
+        "weaknesses": [
+          "Rejects timeoutMs: Infinity where the other two accept it as 'no timeout' (design choice, but less lenient)",
+          "Stale cancelled entries linger in the heap until popped",
+          "NOTES.md points to an external redacted spec path for the full decision record",
+          "No test spies on global setTimeout/Date.now to prove the clock is the only time source"
+        ]
+      }
+    },
+    "ranking": [
+      "Z",
+      "X",
+      "Y"
+    ],
+    "rationale": "Z and X are both high-quality and close; Z edges ahead on design because of its O(1) readiness counters, forward-reference index, cycle-check short-circuit and reusable Heap/Emitter modules, plus a commit-then-emit discipline that makes listener-visible state trivially consistent. X compensates with the most careful event-ordering machinery under re-entrancy and by far the strongest test suite, but its source has no comments, its cycle search is linear per add, and its cascade-cause rule is inconsistent with its add-time rule. Y is acceptable and readable but structurally weaker: a linear-scan dispatch, a recursive path-copying cycle search that will overflow on long chains, flat mutable task records, events emitted before cascade state changes, and a thinner test suite."
+  },
+  "raw": null
+}

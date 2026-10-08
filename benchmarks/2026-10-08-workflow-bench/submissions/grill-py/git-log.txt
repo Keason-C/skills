@@ -1,0 +1,10 @@
+cd3ce83 2026-10-08 19:02:55 +0000 NOTES: review-time decisions and timing variance
+271dae9 2026-10-08 19:02:34 +0000 Review cleanups and fewer GC-tracked objects
+0ef0778 2026-10-08 18:59:02 +0000 Fix ROUND for huge magnitudes; dual Type/ValueError for bad argument types
+3b4be5f 2026-10-08 18:50:07 +0000 Overflowing formula literals are #VALUE!; NOTES.md
+9027dcc 2026-10-08 18:49:00 +0000 Performance: timing tests, faster tokenizer, selective structural recalc
+37a1ce9 2026-10-08 18:25:04 +0000 Structural edits: insert/delete rows and columns
+44f1132 2026-10-08 18:23:15 +0000 Copy with relative reference shifting
+ef46476 2026-10-08 18:21:48 +0000 Formula language, built-in functions and incremental recalculation
+8a15f31 2026-10-08 18:15:55 +0000 Addresses, literal classification and the Sheet facade
+b9a2b91 2026-10-08 18:05:45 +0000 starter

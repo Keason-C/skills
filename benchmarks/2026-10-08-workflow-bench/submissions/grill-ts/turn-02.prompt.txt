@@ -1,0 +1,15 @@
+1. Yes.
+2. Yes.
+3. Yes, the direct dependency. When several dependencies have already failed at `add` time, use the first one in `deps` order.
+4. Yes.
+5. Yes to all four.
+6. Yes.
+7. Yes to all.
+8. Yes. Also, calling an unsubscribe function a second time should do nothing.
+9. Yes.
+10. Yes.
+11. Yes.
+12. Yes.
+13. Yes.
+14. Yes.
+15. Yes.

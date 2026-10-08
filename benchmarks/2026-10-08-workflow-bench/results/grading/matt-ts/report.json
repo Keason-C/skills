@@ -1,0 +1,111 @@
+{
+  "run": "matt-ts",
+  "loc_src": 433,
+  "loc_tests": 572,
+  "lizard": {
+    "functions": 36,
+    "avg_ccn": 1.56,
+    "max_ccn": 6,
+    "ccn_over_10": 0,
+    "max_fn_nloc": 17,
+    "avg_fn_nloc": 3.3
+  },
+  "typecheck_ok": true,
+  "typecheck_tail": "",
+  "any_count": 2,
+  "hidden": {
+    "basics": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "cancel": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    },
+    "cycle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "deps": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "events": {
+      "pass": 14,
+      "fail": 0,
+      "failed": []
+    },
+    "hygiene": {
+      "pass": 11,
+      "fail": 0,
+      "failed": []
+    },
+    "idle": {
+      "pass": 8,
+      "fail": 0,
+      "failed": []
+    },
+    "order": {
+      "pass": 15,
+      "fail": 0,
+      "failed": []
+    },
+    "po": {
+      "pass": 42,
+      "fail": 0,
+      "failed": []
+    },
+    "retry": {
+      "pass": 10,
+      "fail": 0,
+      "failed": []
+    },
+    "timeout": {
+      "pass": 13,
+      "fail": 0,
+      "failed": []
+    },
+    "validation": {
+      "pass": 12,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "hidden_unhandled": false,
+  "own_tests": {
+    "basics": {
+      "pass": 6,
+      "fail": 0,
+      "failed": []
+    },
+    "cancellation": {
+      "pass": 15,
+      "fail": 0,
+      "failed": []
+    },
+    "dependencies": {
+      "pass": 5,
+      "fail": 0,
+      "failed": []
+    },
+    "ordering": {
+      "pass": 5,
+      "fail": 0,
+      "failed": []
+    },
+    "retries": {
+      "pass": 7,
+      "fail": 0,
+      "failed": []
+    }
+  },
+  "own_coverage_pct": 100,
+  "git": {
+    "commits": 2,
+    "uncommitted_files": 0
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "model": "claude-fable-5-1",
+  "mapping": {
+    "X": "pstack",
+    "Y": "grill",
+    "Z": "matt"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 8,
+        "readability": 7,
+        "maintainability": 7,
+        "robustness": 8,
+        "tests": 9,
+        "docs": 8,
+        "overall": 8,
+        "bugs": [
+          "No correctness bugs found. Scalability nit: findCycleThrough walks the full transitive dependency closure of every added task, so building an n-task chain is O(n^2); flush() drains pendingEvents with shift(), which is O(n) per event."
+        ],
+        "strengths": [
+          "Phase discriminated union makes illegal states unrepresentable and keeps attempt/timer handles attached to the state that owns them",
+          "Single attempt-identity check (isCurrent) covers late settles, timeouts and cancels uniformly",
+          "Binary heap with lazy invalidation via phase identity is simple and O(log n)",
+          "Timer creation deferred until after the start listener runs, so a start-listener cancel creates no timer",
+          "Outstanding test suite: timer accounting, global-timer/Date.now spies, unhandled-rejection traps, re-entrancy, __proto__ dep, mutation script",
+          "NOTES clearly separates PO-confirmed decisions from author decisions"
+        ],
+        "weaknesses": [
+          "Deferred event queue (pendingEvents/flushing flag) plus the pump loop with idleBefore is clever but non-obvious; almost no code comments to help a newcomer",
+          "Everything in one ~600-line file; heap sift logic duplicated inline rather than in a reusable module",
+          "Dependents tracked by id strings with repeated Map lookups and per-release every() scans",
+          "Tests reference external 'rule 12/13/14' numbering not present in the repo"
+        ]
+      },
+      "Y": {
+        "design": 9,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 8,
+        "docs": 7,
+        "overall": 8,
+        "bugs": [
+          "No correctness bugs found. Minor: onIdle() called from a listener after the last task finished but before 'idle' is emitted resolves ahead of the idle event, unlike the documented ordering elsewhere; timeoutMs: Infinity is rejected (defensible, documented)."
+        ],
+        "strengths": [
+          "Clean module boundaries: reusable Heap and Emitter in src/internal",
+          "unmet counters plus dependents arrays plus forwardRefs make readiness O(1) per success and forward references explicit",
+          "Cycle search only runs when a forward reference to the new id exists, so normal add is O(deps)",
+          "All graph walks iterative and tested at 20k depth",
+          "Commit-then-emit discipline clearly stated and enforced; listeners always see final state",
+          "Good docstrings on every non-trivial method; unhandled-rejection guard in every test file; 300-task randomized ordering test"
+        ],
+        "weaknesses": [
+          "Three parallel structures (unmet, dependents, forwardRefs) must be kept consistent when extending",
+          "Emitter requires event names in both the type and a constructor list",
+          "NOTES defers the full decision record to an external spec.md that is not part of the deliverable",
+          "Test coverage of timer hygiene against real globals and of listener/cancel-from-start edge cases is thinner than X"
+        ]
+      },
+      "Z": {
+        "design": 5,
+        "readability": 7,
+        "maintainability": 6,
+        "robustness": 5,
+        "tests": 6,
+        "docs": 7,
+        "overall": 6,
+        "bugs": [
+          "findCycle in src/internal.ts is recursive and copies the path array at every level: adding a task to a deep dependency chain (~10k) overflows the call stack, and chain construction is O(depth^2) per add (cubic overall).",
+          "dispatch() does a linear scan of the queued Set for every start, making a large backlog O(n^2) to drain."
+        ],
+        "strengths": [
+          "Single dependents index keyed by id (including unadded ids) handles forward refs, readiness and cascades uniformly",
+          "operate/dispatchAndCheckIdle re-entrancy model is easy to follow",
+          "onIdle() correctly waits for a pending idle transition instead of resolving ahead of it",
+          "Thorough NOTES enumerating open-behaviour decisions; helpful docstrings",
+          "Cascade is iterative with direct-dependency causes and add-order events"
+        ],
+        "weaknesses": [
+          "No priority queue; scalability of dispatch and cycle detection is poor",
+          "attemptFailed has subtle repeated state re-checks around abort that are easy to break",
+          "Tests: no unhandled-rejection guard, no real-timer/Date.now hygiene check, no start-listener-cancel or late-reject tests, cycle shape only asserted sorted",
+          "TimeoutError wrapper class adds surface without clear need"
+        ]
+      }
+    },
+    "ranking": [
+      "Y",
+      "X",
+      "Z"
+    ],
+    "rationale": "Y and X are both solid, bug-free implementations; Y edges ahead on design because its forward-ref/unmet-counter graph, targeted cycle check, extracted Heap/Emitter and iterative walks scale cleanly and are easy to extend, while X wins on testing with an exceptional behavioural suite covering timer hygiene, unhandled rejections and re-entrancy. X's deferred event queue and pump loop are correct but harder to onboard onto, and its per-add cycle walk is quadratic on chains. Z is readable and well documented but has real scalability defects: a recursive, path-copying cycle search that overflows on deep graphs and an O(n) linear scan per dispatch, plus a noticeably thinner test suite."
+  },
+  "raw": null
+}

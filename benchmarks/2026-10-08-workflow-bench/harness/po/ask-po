@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""ask-po "question" : ask the product owner (the user) a requirements question."""
+import json, os, sys, urllib.request
+if sys.argv[1:2] in (["-h"], ["--help"]): sys.exit('usage: ask-po "your question"  (asks the product owner / user a requirements question; prints the answer)')
+q = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else sys.stdin.read()
+if not q.strip(): sys.exit('usage: ask-po "your question"  (or pipe the question on stdin)')
+req = urllib.request.Request("http://127.0.0.1:8765/ask", method="POST",
+    data=json.dumps({"id": os.environ.get("BENCH_ID", "?"), "task": os.environ.get("BENCH_TASK", ""), "question": q}).encode(),
+    headers={"content-type": "application/json"})
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+print(opener.open(req, timeout=900).read().decode())

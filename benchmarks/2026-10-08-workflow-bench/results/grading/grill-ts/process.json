@@ -1,0 +1,36 @@
+{
+  "turns": 6,
+  "cost_usd": 5.3,
+  "api_secs": 1063,
+  "tool_calls": {
+    "Bash": 63,
+    "Write": 17,
+    "Skill": 2,
+    "Agent": 2,
+    "SubagentHandback": 2,
+    "Read": 1,
+    "ReadNotifications": 1
+  },
+  "skills": {
+    "tdd": 1,
+    "code-review": 1
+  },
+  "subagents": 2,
+  "subagent_models": {
+    "inherit": 2
+  },
+  "model_tokens": {
+    "claude-opus-5-5": {
+      "in": 245149,
+      "out": 114489,
+      "cache_read": 6777303,
+      "cost": 5.3
+    }
+  },
+  "denied": 0,
+  "bench_done": true,
+  "wall_secs": 1302,
+  "po_relays": 3,
+  "ask_po_calls": 2,
+  "tool_calls_total": 88
+}

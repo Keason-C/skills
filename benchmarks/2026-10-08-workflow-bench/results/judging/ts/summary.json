@@ -1,0 +1,206 @@
+{
+  "grill": {
+    "avg": {
+      "design": 9.0,
+      "readability": 8.0,
+      "maintainability": 8.0,
+      "robustness": 8.0,
+      "tests": 8.0,
+      "docs": 7.75,
+      "overall": 8.0
+    },
+    "ranks": [
+      1,
+      1,
+      2,
+      1
+    ],
+    "notes": {
+      "bugs": [
+        "If an abort listener on the timed-out attempt's signal calls cancel() while the task is 'retrying', failAttempt still emits the 'retry' event afterwards for a task that is already cancelled. The makeReady call is guarded; the emit is not.",
+        "onIdle() called from the last task's success/failure listener resolves before the 'idle' event is emitted, because it checks unfinished===0 rather than whether idle has been announced. Minor ordering inconsistency.",
+        "In failAttempt, when a timed-out attempt's abort listener synchronously cancels the task, the 'retry' event is still emitted afterwards for an already-cancelled task (Y guards this case; Z does not)",
+        "timeoutMs: Infinity is rejected with a RangeError, which is stricter than the brief implies (documented, but may surprise callers)",
+        "NOTES points to an external spec.md (redacted path) for the full decision record, which is not in the repo",
+        "The cascade cause is the first dead dependency in deps order rather than the edge the cascade actually traversed; documented, but it differs from a 'direct path' reading",
+        "No correctness bugs found. Minor: onIdle() called from a listener after the last task finished but before 'idle' is emitted resolves ahead of the idle event, unlike the documented ordering elsewhere; timeoutMs: Infinity is rejected (defensible, documented)."
+      ],
+      "strengths": [
+        "Clean module split: a generic Heap and an Emitter (snapshot iteration, per-registration unsubscribe, unknown-event check) are separate from the Scheduler.",
+        "Scales well. Ready heap with lazy deletion, an unmet-dependency counter instead of rescanning deps, and forwardRefs that let cycle detection skip the DFS unless a forward reference or self-dep exists, so a normal add costs O(deps).",
+        "All graph walks are iterative (cycle DFS, cascade, assignDependencyError), and a 20k-deep chain is tested.",
+        "Commit-then-emit discipline: state, cascade, slot release and abort all happen before any event, so listeners see final states.",
+        "Attempt object identity gives one stale-settlement check covering timeout, cancel and late settle.",
+        "Thorough input validation, including id, run and deps types.",
+        "Best algorithmic choices: unmet counters give O(1) readiness, forwardRefs map handles late deps, cycle search short-circuits unless an existing forward reference to the new id exists, generic Heap for dispatch; all graph walks iterative and a 20k-chain test proves it",
+        "Commit-then-emit discipline: states, cascade, slot release and abort are all applied before any event, so listeners always observe final states",
+        "Clean module boundaries (Emitter, Heap) with docstrings on fields and methods; defensive TypeError validation of id/run/deps",
+        "Focused tests with expectNoUnhandledRejections in every file, snapshot-emit semantics, self-cancel from run, randomized 300-task priority ordering, deep cascade",
+        "Clean modular split: a generic Heap and Emitter in src/internal, and the scheduler logic in index.ts",
+        "Unmet-dependency counters plus a forwardRefs map make readiness O(1) per edge",
+        "Cycle detection runs only when a forward reference to the new id exists (or a self-dependency), so it is O(deps) in the common case; it is iterative",
+        "Iterative graph walks, with a 20k-deep chain test proving there is no stack exhaustion",
+        "'Commit then emit' discipline, so listeners always observe final states",
+        "Tests install an unhandled-rejection guard per file and include a 300-task randomized priority check",
+        "Clean module boundaries: reusable Heap and Emitter in src/internal",
+        "unmet counters plus dependents arrays plus forwardRefs make readiness O(1) per success and forward references explicit",
+        "Cycle search only runs when a forward reference to the new id exists, so normal add is O(deps)",
+        "All graph walks iterative and tested at 20k depth",
+        "Commit-then-emit discipline clearly stated and enforced; listeners always see final state",
+        "Good docstrings on every non-trivial method; unhandled-rejection guard in every test file; 300-task randomized ordering test"
+      ],
+      "weaknesses": [
+        "The op/depth/idleEmitted interplay is subtle. Re-entrant cascade ordering with listeners (e.g. 'late' cancel before 'child' cancel) is documented but surprising.",
+        "NOTES references an external spec.md with a redacted path, so part of the rationale is not self-contained.",
+        "Cascade cause is the first dead dependency in deps order rather than the cascade path. This is defensible, but assignDependencyError adds a second walk.",
+        "Rejects timeoutMs: Infinity where the other two accept it as 'no timeout' (design choice, but less lenient)",
+        "Stale cancelled entries linger in the heap until popped",
+        "NOTES.md points to an external redacted spec path for the full decision record",
+        "No test spies on global setTimeout/Date.now to prove the clock is the only time source",
+        "Some tests assert loosely (log.map(e => e[0])) rather than exact payloads",
+        "No test of global timer or Date.now avoidance",
+        "The assignDependencyError stack walk is clever but harder to follow than a BFS-carried cause",
+        "Three parallel structures (unmet, dependents, forwardRefs) must be kept consistent when extending",
+        "Emitter requires event names in both the type and a constructor list",
+        "NOTES defers the full decision record to an external spec.md that is not part of the deliverable",
+        "Test coverage of timer hygiene against real globals and of listener/cancel-from-start edge cases is thinner than X"
+      ]
+    }
+  },
+  "matt": {
+    "avg": {
+      "design": 5.5,
+      "readability": 7.0,
+      "maintainability": 6.25,
+      "robustness": 5.75,
+      "tests": 6.0,
+      "docs": 7.5,
+      "overall": 6.0
+    },
+    "ranks": [
+      3,
+      3,
+      3,
+      3
+    ],
+    "notes": {
+      "bugs": [
+        "findCycle is recursive and copies the path array at each level. Every add runs a full DFS: O(n^2) time and memory on long chains, and a stack overflow for very deep dependency chains (tens of thousands).",
+        "Registering the same listener function twice and calling the second unsubscribe removes the first registration, because it uses indexOf(listener).",
+        "Dispatch scans the whole queued Set for every slot fill, so it is O(queued) per start and O(n^2) overall with many ready tasks.",
+        "findCycle in internal.ts is recursive and copies the path on every step ([...path, node]); adding to the end of a long dependency chain (~10k) overflows the stack and is O(n^2) per add",
+        "dispatch() picks the next task by linearly scanning the queued Set, so draining n queued tasks is O(n^2)",
+        "finish() emits the failure/cancel event before cascade() changes dependents' states, so a failure listener observes dependents still 'waiting' although they are about to be cancelled (inconsistent with the 'state first' story elsewhere)",
+        "ctx.deps is built with deps[dep] = ..., so a dependency id of \"__proto__\" sets the object's prototype instead of creating an own key",
+        "findCycle is recursive and copies the path at each step ([...path, node]), so deep chains can overflow the stack and long paths cost O(n^2)",
+        "dispatch() scans the whole queued Set linearly for every start, giving O(n^2) total dispatch on large queues",
+        "findCycle in src/internal.ts is recursive and copies the path array at every level: adding a task to a deep dependency chain (~10k) overflows the call stack, and chain construction is O(depth^2) per add (cubic overall).",
+        "dispatch() does a linear scan of the queued Set for every start, making a large backlog O(n^2) to drain."
+      ],
+      "strengths": [
+        "Compact and readable: a single dependents index handles forward refs, readiness and cascades.",
+        "The ready-transition sequence plus add-index tiebreak is a clear model of 'same moment'.",
+        "The 'busy' flag means onIdle() called mid-transition waits for the actual idle announcement.",
+        "attemptFailed guards against a re-entrant cancel from an abort listener before emitting 'retry'.",
+        "NOTES are thorough and explicit about every open-behaviour decision.",
+        "Compact and straightforward; operate()/dispatchAndCheckIdle depth pattern is easy to follow",
+        "busy flag makes onIdle() called from the last success listener resolve after the idle event, a thoughtful edge",
+        "Attempt-token approach and stopAttempt/clearBackoff keep timer hygiene correct; abort-listener re-cancel guarded in attemptFailed",
+        "Reasonable docstrings on methods and a NOTES.md that lists decisions and confirms them with the PO",
+        "Simple, easy-to-follow operate()/dispatchAndCheckIdle structure",
+        "The attempt-token pattern cleanly ignores stale settles",
+        "Handles an abort listener re-entrantly cancelling during attemptFailed",
+        "Good NOTES covering open decisions, including the onIdle-mid-operation subtlety",
+        "Single dependents index keyed by id (including unadded ids) handles forward refs, readiness and cascades uniformly",
+        "operate/dispatchAndCheckIdle re-entrancy model is easy to follow",
+        "onIdle() correctly waits for a pending idle transition instead of resolving ahead of it",
+        "Thorough NOTES enumerating open-behaviour decisions; helpful docstrings",
+        "Cascade is iterative with direct-dependency causes and add-order events"
+      ],
+      "weaknesses": [
+        "Algorithmic choices (linear scan, recursive cycle search on every add, depsSucceeded rescans) do not scale.",
+        "Test suite is thinner. No unhandled-rejection trap, a 20-microtask flush helper rather than a macrotask, and the cycle-content assertion is sorted.",
+        "No validation of id or deps types.",
+        "Timeout TaskError wraps a synthetic TimeoutError cause. This is allowed, but it is an extra type that consumers may not expect.",
+        "Flat Task bag of mutable fields (attemptToken, controller, timeoutTimer, backoffTimer, value, error) rather than a state-carrying structure; invariants between them are implicit",
+        "Several very long lines (doomedBy lookup, validation) hurt readability",
+        "Thinner tests: no unhandled-rejection or global-timer hygiene checks, no deep-chain or re-entrant-from-run scenarios, no __proto__ dep",
+        "Unsubscribe by indexOf removes only the first registration of a duplicated listener",
+        "A flat Task record with many optional, mutually dependent fields (controller, timers, token, value, error) leaves state invariants implicit",
+        "Cascade sets state, but result rejection happens in two places (finish and cascade), which is easy to get wrong when extending",
+        "Thin test suite: few exact event-order assertions, no unhandled-rejection checks, no hygiene checks for global timers or Date.now",
+        "TimeoutError is added as the cause of a timeout, an extra type of debatable value",
+        "No priority queue; scalability of dispatch and cycle detection is poor",
+        "attemptFailed has subtle repeated state re-checks around abort that are easy to break",
+        "Tests: no unhandled-rejection guard, no real-timer/Date.now hygiene check, no start-listener-cancel or late-reject tests, cycle shape only asserted sorted",
+        "TimeoutError wrapper class adds surface without clear need"
+      ]
+    }
+  },
+  "pstack": {
+    "avg": {
+      "design": 8.0,
+      "readability": 7.5,
+      "maintainability": 7.75,
+      "robustness": 8.25,
+      "tests": 9.5,
+      "docs": 8.5,
+      "overall": 8.33
+    },
+    "ranks": [
+      2,
+      2,
+      1,
+      2
+    ],
+    "notes": {
+      "bugs": [
+        "Cycle detection runs a full iterative DFS on every add, with no forward-reference shortcut, giving O(V+E) per add and O(n^2) to build a large graph.",
+        "With a zero-delay retry, the phase is never set to 'retrying'. A cancel issued from an abort listener or any reentrant path during the window sees the phase as 'running' with an already-ended attempt. Probably unreachable today, but the invariant is fragile.",
+        "A re-entrant cancel during a timed-out attempt's abort can still deliver the queued 'retry' event after the task is cancelled.",
+        "Cycle detection walks every node reachable from the new task's deps on every add, so cost is O(V+E) per add and quadratic when building large graphs (a performance issue, not a correctness bug)",
+        "emit() queues a closure that snapshots the listener set at delivery time, not at emit time, so a listener subscribed between queueing and flush receives an event that predates its subscription",
+        "dependentsOf entries for ids that are never added stay forever (minor)",
+        "No correctness bugs found. Scalability nit: findCycleThrough walks the full transitive dependency closure of every added task, so building an n-task chain is O(n^2); flush() drains pendingEvents with shift(), which is O(n) per event."
+      ],
+      "strengths": [
+        "Discriminated-union Phase carries per-state data (attempt, timer handle, value/error). This makes illegal states hard to represent, and state() is just phase.kind.",
+        "Heap entries hold the phase object identity, so staleness detection is elegant and exact.",
+        "Fully iterative graph walks, and Object.fromEntries for ctx.deps (__proto__-safe, and tested).",
+        "An exceptional test suite: harness helpers (controlled/scripted/instant), exact event-sequence assertions, timer accounting, a global timer/Date.now spy, unhandled-rejection traps with real macrotasks, re-entrancy cases, and a mutation-testing script.",
+        "NOTES clearly separate PO-confirmed decisions from self-made ones and describe test provenance.",
+        "Phase discriminated union carries exactly the data each state needs; stale-attempt check (task.phase.attempt === attempt) uniformly covers cancel, timeout and late settles",
+        "Transaction + deferred event queue keeps the documented event order even when listeners re-enter the scheduler (nested calls' events land after the outer step's events)",
+        "Binary heap ready queue with lazy invalidation; iterative cycle search; Object.fromEntries for __proto__-safe ctx.deps; thorough option validation",
+        "Outstanding test suite: controlled/scripted harness, timer accounting, global-timer and Date.now spies, unhandled-rejection trap via macrotask, re-entrancy and ready-moment tests, claimed mutation script",
+        "Phase is a discriminated union carrying per-state data (the attempt, the backoff handle, the terminal value or error), so invalid combinations cannot be represented",
+        "A single isCurrent(task, attempt) identity check covers late settles, timeouts and cancels",
+        "Binary heap with lazy invalidation: an entry is live only while it is the task's current queued phase object",
+        "Transactions with a queued event flush guarantee the documented event order under re-entrancy",
+        "An exceptionally thorough black-box test suite with exact event-sequence assertions, re-entrancy and hygiene checks (no global timers or Date.now), plus a mutation-testing script",
+        "Phase discriminated union makes illegal states unrepresentable and keeps attempt/timer handles attached to the state that owns them",
+        "Single attempt-identity check (isCurrent) covers late settles, timeouts and cancels uniformly",
+        "Binary heap with lazy invalidation via phase identity is simple and O(log n)",
+        "Timer creation deferred until after the start listener runs, so a start-listener cancel creates no timer",
+        "Outstanding test suite: timer accounting, global-timer/Date.now spies, unhandled-rejection traps, re-entrancy, __proto__ dep, mutation script",
+        "NOTES clearly separates PO-confirmed decisions from author decisions"
+      ],
+      "weaknesses": [
+        "The deferred event queue (emit enqueues, flush delivers) adds a second layer of ordering semantics. A nested call returns before its own events are delivered, which is harder to reason about.",
+        "All logic, including the heap, lives in one file. This is less modular than X.",
+        "Validation does not cover id, run or deps types. The duplicate check precedes validation, which is unusual but documented.",
+        "Zero comments or docstrings in src; transaction/flush/pump interplay (flushing guard, moment counter, idleBefore loop) must be learned from NOTES.md",
+        "Cycle detection walks the whole reachable graph on every add (O(n) per add, O(n^2) for long chains), and dependenciesSucceeded re-scans deps on every release instead of counting",
+        "Cascade cause uses BFS-nearest dependency while add-time cancellation uses first-in-deps-order, a small inconsistency the notes admit",
+        "Single ~450-line file; the inline heap could have been a reusable module",
+        "Everything is in one ~500-line file, with no separate modules for the heap or the emitter",
+        "The deferred event delivery is subtle: a nested call returns before its own events reach listeners, which needs care to reason about",
+        "The order of duplicate check versus validation differs from common expectations (documented, though)",
+        "Deferred event queue (pendingEvents/flushing flag) plus the pump loop with idleBefore is clever but non-obvious; almost no code comments to help a newcomer",
+        "Everything in one ~600-line file; heap sift logic duplicated inline rather than in a reusable module",
+        "Dependents tracked by id strings with repeated Map lookups and per-release every() scans",
+        "Tests reference external 'rule 12/13/14' numbering not present in the repo"
+      ]
+    }
+  }
+}

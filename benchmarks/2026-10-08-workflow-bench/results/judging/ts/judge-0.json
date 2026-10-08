@@ -1,0 +1,98 @@
+{
+  "model": "claude-opus-5-5",
+  "mapping": {
+    "X": "grill",
+    "Y": "matt",
+    "Z": "pstack"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 9,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 8,
+        "docs": 8,
+        "overall": 8,
+        "bugs": [
+          "If an abort listener on the timed-out attempt's signal calls cancel() while the task is 'retrying', failAttempt still emits the 'retry' event afterwards for a task that is already cancelled. The makeReady call is guarded; the emit is not.",
+          "onIdle() called from the last task's success/failure listener resolves before the 'idle' event is emitted, because it checks unfinished===0 rather than whether idle has been announced. Minor ordering inconsistency."
+        ],
+        "strengths": [
+          "Clean module split: a generic Heap and an Emitter (snapshot iteration, per-registration unsubscribe, unknown-event check) are separate from the Scheduler.",
+          "Scales well. Ready heap with lazy deletion, an unmet-dependency counter instead of rescanning deps, and forwardRefs that let cycle detection skip the DFS unless a forward reference or self-dep exists, so a normal add costs O(deps).",
+          "All graph walks are iterative (cycle DFS, cascade, assignDependencyError), and a 20k-deep chain is tested.",
+          "Commit-then-emit discipline: state, cascade, slot release and abort all happen before any event, so listeners see final states.",
+          "Attempt object identity gives one stale-settlement check covering timeout, cancel and late settle.",
+          "Thorough input validation, including id, run and deps types."
+        ],
+        "weaknesses": [
+          "The op/depth/idleEmitted interplay is subtle. Re-entrant cascade ordering with listeners (e.g. 'late' cancel before 'child' cancel) is documented but surprising.",
+          "NOTES references an external spec.md with a redacted path, so part of the rationale is not self-contained.",
+          "Cascade cause is the first dead dependency in deps order rather than the cascade path. This is defensible, but assignDependencyError adds a second walk."
+        ]
+      },
+      "Y": {
+        "design": 6,
+        "readability": 8,
+        "maintainability": 7,
+        "robustness": 6,
+        "tests": 6,
+        "docs": 8,
+        "overall": 6,
+        "bugs": [
+          "findCycle is recursive and copies the path array at each level. Every add runs a full DFS: O(n^2) time and memory on long chains, and a stack overflow for very deep dependency chains (tens of thousands).",
+          "Registering the same listener function twice and calling the second unsubscribe removes the first registration, because it uses indexOf(listener).",
+          "Dispatch scans the whole queued Set for every slot fill, so it is O(queued) per start and O(n^2) overall with many ready tasks."
+        ],
+        "strengths": [
+          "Compact and readable: a single dependents index handles forward refs, readiness and cascades.",
+          "The ready-transition sequence plus add-index tiebreak is a clear model of 'same moment'.",
+          "The 'busy' flag means onIdle() called mid-transition waits for the actual idle announcement.",
+          "attemptFailed guards against a re-entrant cancel from an abort listener before emitting 'retry'.",
+          "NOTES are thorough and explicit about every open-behaviour decision."
+        ],
+        "weaknesses": [
+          "Algorithmic choices (linear scan, recursive cycle search on every add, depsSucceeded rescans) do not scale.",
+          "Test suite is thinner. No unhandled-rejection trap, a 20-microtask flush helper rather than a macrotask, and the cycle-content assertion is sorted.",
+          "No validation of id or deps types.",
+          "Timeout TaskError wraps a synthetic TimeoutError cause. This is allowed, but it is an extra type that consumers may not expect."
+        ]
+      },
+      "Z": {
+        "design": 8,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 10,
+        "docs": 9,
+        "overall": 8,
+        "bugs": [
+          "Cycle detection runs a full iterative DFS on every add, with no forward-reference shortcut, giving O(V+E) per add and O(n^2) to build a large graph.",
+          "With a zero-delay retry, the phase is never set to 'retrying'. A cancel issued from an abort listener or any reentrant path during the window sees the phase as 'running' with an already-ended attempt. Probably unreachable today, but the invariant is fragile.",
+          "A re-entrant cancel during a timed-out attempt's abort can still deliver the queued 'retry' event after the task is cancelled."
+        ],
+        "strengths": [
+          "Discriminated-union Phase carries per-state data (attempt, timer handle, value/error). This makes illegal states hard to represent, and state() is just phase.kind.",
+          "Heap entries hold the phase object identity, so staleness detection is elegant and exact.",
+          "Fully iterative graph walks, and Object.fromEntries for ctx.deps (__proto__-safe, and tested).",
+          "An exceptional test suite: harness helpers (controlled/scripted/instant), exact event-sequence assertions, timer accounting, a global timer/Date.now spy, unhandled-rejection traps with real macrotasks, re-entrancy cases, and a mutation-testing script.",
+          "NOTES clearly separate PO-confirmed decisions from self-made ones and describe test provenance."
+        ],
+        "weaknesses": [
+          "The deferred event queue (emit enqueues, flush delivers) adds a second layer of ordering semantics. A nested call returns before its own events are delivered, which is harder to reason about.",
+          "All logic, including the heap, lives in one file. This is less modular than X.",
+          "Validation does not cover id, run or deps types. The duplicate check precedes validation, which is unusual but documented."
+        ]
+      }
+    },
+    "ranking": [
+      "X",
+      "Z",
+      "Y"
+    ],
+    "rationale": "X and Z are both high-quality, correct-looking implementations with iterative graph handling, heap-based ready queues and careful commit-then-emit semantics. X edges ahead on design: its module split and its O(deps) add path, thanks to the cycle-check shortcut and unmet counters, scale better. Z has the more expressive state model and by far the strongest test suite, including mutation testing and global-timer spies. Y is clean and well documented, but its linear dispatch scan, recursive per-add cycle search (stack overflow on deep chains) and comparatively thin tests make it clearly the weakest. The remaining bugs are minor re-entrancy edge cases common to X and Z, plus a listener-unsubscribe identity issue in Y."
+  },
+  "raw": null
+}

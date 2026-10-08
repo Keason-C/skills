@@ -1,0 +1,3 @@
+[18:05:44] turn 1 start (resume=None)
+[18:17:03] turn 1 end rc=0 secs=679 cost=2.9426612000000003 subtype=success last=' function that took a true/false switch;\n- moved the duplicated test helpers into one shared file.\n\nThe main risk with the hidden acceptance suite is that its wording reads differently from these product-owner answers. Ready order and calls from inside listeners are the two most exposed.\n\nBENCH-DONE'
+[18:17:03] ALL DONE wall=679s

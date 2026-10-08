@@ -1,0 +1,99 @@
+{
+  "model": "claude-fable-5-1",
+  "mapping": {
+    "X": "pstack",
+    "Y": "matt",
+    "Z": "grill"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 7,
+        "readability": 8,
+        "maintainability": 7,
+        "robustness": 6,
+        "tests": 8,
+        "docs": 7,
+        "overall": 7,
+        "bugs": [
+          "Relies on sys.setrecursionlimit(20000) during set/copy/structural edits: a process-global, non-reentrant side effect; parse/eval recursion is still bounded, with deep formulas silently degrading to #PARSE!/#VALUE! via caught RecursionError.",
+          "Sheet exposes extra public methods `value` and `iter_rect` (it doubles as the evaluation Context), leaking beyond the fixed API.",
+          "Negative zero is not normalised (`=-B1` with empty B1 yields -0.0; ROUND(-0.4,0) yields -0.0); cosmetic but observable via str().",
+          "RangeIndex never prunes emptied tile dicts, and 16-column tiles mean an edit in column C scans every range registered over column A in the same tile (e.g. thousands of prefix sums)."
+        ],
+        "strengths": [
+          "Clean, compact module split with a very readable recursive-descent parser and lazy argument-node functions (IF/IFERROR fall out naturally).",
+          "Reference rewriting is token-splice based and preserves bytes; parse-error formulas still get rewritten.",
+          "Two solid test suites (black-box brief suite plus decision/edge suite) with timing, deep nesting, huge sparse ranges and recursion-limit restoration checks.",
+          "NOTES clearly lists decisions and known limits (prefix-sum quadratic cost, full recompute on structural edits)."
+        ],
+        "weaknesses": [
+          "Structural edits reset the sheet via self.__init__() and recompute everything.",
+          "Recursion-based parse/eval requires the recursion-limit hack instead of iterative algorithms.",
+          "Dependents of an edit are all re-evaluated even if intermediate values are unchanged (fine per spec but less efficient than Z).",
+          "tools/bench.py is crammed one-liners; few docstrings in modules."
+        ]
+      },
+      "Y": {
+        "design": 7,
+        "readability": 6,
+        "maintainability": 6,
+        "robustness": 7,
+        "tests": 6,
+        "docs": 7,
+        "overall": 6,
+        "bugs": [
+          "copy() iterates the entire dense source rectangle (e.g. copy('A1:A1048576','B1') walks ~1M positions and seeds _recalc with ~1M keys) regardless of how many cells are populated.",
+          "API addresses with leading zeros (`A01`) are accepted even though the spec says malformed addresses raise ValueError (documented decision, but inconsistent with rejecting whitespace/`$`).",
+          "delete_rows/delete_cols running past the grid edge are not validated.",
+          "Function arity lives in `_formula.ARITY` while implementations live in `_evaluator.FUNCTIONS`; the compiler special-cases IF/IFERROR/aggregates by name, so adding a function touches several places."
+        ],
+        "strengths": [
+          "Fully iterative pipeline: shunting-yard parser, explicit-stack compiler, flat VM with jumps for IF/IFERROR; no recursion-limit games.",
+          "Multi-resolution per-axis range index keeps tall single-column ranges from slowing neighbouring columns; test proves it.",
+          "Structural edits move values with cells and only recompile/recalculate affected formulas, with correct handling of cells pushed off the grid via dependents-of-removed seeding.",
+          "Endpoint-level spans preserve whitespace around a range colon on rewrite; lenient re-tokenisation rewrites refs even after untokenisable characters."
+        ],
+        "weaknesses": [
+          "Long functions (parse, compile_formula, _structural) with tuple-indexed ASTs and a three-way None/str/tuple return protocol in the rewriter.",
+          "Fewer tests than the others; limited coverage of extreme values, API validation, and no randomised cross-check of the incremental structural-edit shortcuts.",
+          "Late import of Sheet at the bottom of __init__ to dodge a circular import."
+        ]
+      },
+      "Z": {
+        "design": 9,
+        "readability": 7,
+        "maintainability": 8,
+        "robustness": 9,
+        "tests": 9,
+        "docs": 9,
+        "overall": 9,
+        "bugs": [
+          "Unparseable formulas are copied and moved with their reference tokens untouched (documented), which diverges from the brief's statement that structural edits and copies rewrite reference tokens.",
+          "DependencyIndex.dependents() returns live internal containers (a tuple or the actual set) that callers must not mutate; an easy future footgun.",
+          "ArgumentTypeError inheriting from both TypeError and ValueError is unusual and could surprise callers.",
+          "Formula.relocated() duplicates the text-rewrite semantics in code form; the two must stay in lockstep (mitigated by the differential test)."
+        ],
+        "strengths": [
+          "Everything iterative, with a compact stack VM; reference operands travel unread as int tuples so single refs in aggregates behave as 1-cell ranges at runtime and compiled code is GC-cheap.",
+          "Dyadic 2-D range index gives exact O(log n) coverage per range and cheap point lookups.",
+          "Smartest recalculation: Kahn for the acyclic part, Tarjan only for leftovers, dirty-tracking so untouched downstream cells are not re-evaluated, fast path for cells nobody reads, and a lossy-only recalc after structural edits with a reach cutoff.",
+          "Outstanding tests: randomised differential test against freshly built sheets (values, change lists, idempotence), extreme ROUND magnitudes, huge sparse ranges, type validation, performance budgets.",
+          "Best documentation: module docstrings everywhere, NOTES explains algorithms, performance and every behavioural decision."
+        ],
+        "weaknesses": [
+          "More concepts to learn (Operand tuples, LAZY sentinel, relocation, stateful _lossy transform, dense/sparse heuristics) and heavy `# type: ignore` noise.",
+          "Odd import formatting in _formula.py and boolean `rows` flags instead of an axis enum.",
+          "Structural edits still rebuild the whole index and copy every cell (O(N)), as the others do."
+        ]
+      }
+    },
+    "ranking": [
+      "Z",
+      "X",
+      "Y"
+    ],
+    "rationale": "Z is the clear leader: it avoids recursion entirely, has the most scalable dependency index and recalculation (dirty tracking, lossy-only structural recalc), validates inputs most carefully, and backs its riskier shortcuts with a randomised differential test and the most complete documentation. X is the most readable and simplest to extend, with strong tests and honest NOTES, but it leans on a process-global recursion-limit hack, leaks extra public methods on Sheet, and recomputes the whole sheet on structural edits. Y is architecturally sound (iterative VM, good range index, partial incremental structural edits) but its code is harder to follow, function metadata is split across modules, copy scales with rectangle area rather than population, and its test suite is the thinnest of the three."
+  },
+  "raw": null
+}

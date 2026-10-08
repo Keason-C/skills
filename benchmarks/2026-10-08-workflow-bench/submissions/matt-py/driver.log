@@ -1,0 +1,3 @@
+[18:05:43] turn 1 start (resume=None)
+[18:36:28] turn 1 end rc=0 secs=1845 cost=6.225815399999998 subtype=success last='nd the tests, I ran two random tests over thousands of generated sheets. One checks that inserting/deleting rows and columns gives the same values as rebuilding the sheet from scratch. The other checks that every list of changed cells matches a before/after comparison of all cell values.\n\nBENCH-DONE'
+[18:36:28] ALL DONE wall=1845s

@@ -1,0 +1,102 @@
+{
+  "model": "claude-opus-5-5",
+  "mapping": {
+    "X": "pstack",
+    "Y": "grill",
+    "Z": "matt"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 6,
+        "readability": 8,
+        "maintainability": 7,
+        "robustness": 6,
+        "tests": 8,
+        "docs": 8,
+        "overall": 7,
+        "bugs": [
+          "Evaluation is a recursive AST walk. Deep nesting only works because set/copy/_restructure temporarily raise sys.setrecursionlimit to 20000, which is process-global, not thread-safe and could still overflow the C stack. _evaluate also catches RecursionError and silently returns #VALUE!.",
+          "Ranges spanning more than 256 tiles go into one _untiled dict that every dependency lookup scans linearly. Many distinct large ranges therefore make each edit O(#large ranges).",
+          "Structural edits re-store every cell and recalculate the whole sheet (about 1-1.4s per edit at 50k cells, per the notes). _restructure resets state by calling self.__init__().",
+          "There is no dirty-pruning: every transitive dependent is re-evaluated even when an intermediate value did not change, and prefix-sum sheets are quadratic (acknowledged in the notes)."
+        ],
+        "strengths": [
+          "Small, clearly separated modules with a clean function registry (arity plus impl) that makes adding a function trivial.",
+          "Tokenizer never raises, so unparseable formulas still get their references rewritten. The rewrite splices only changed tokens, preserving every other byte.",
+          "Left-operand chains are unwound into a loop, so long flat formulas don't recurse.",
+          "Iterative Tarjan recalculation with correct cycle and self-loop handling.",
+          "Strong black-box test suite written from the brief, plus a decisions suite pinning each product-owner answer.",
+          "NOTES are honest about limits and include a benchmark script."
+        ],
+        "weaknesses": [
+          "Recursion-limit manipulation is a hack where an iterative evaluator was needed.",
+          "Structural edits are non-incremental.",
+          "The range index degrades for many large ranges.",
+          "No randomized or differential testing against a fresh rebuild."
+        ]
+      },
+      "Y": {
+        "design": 9,
+        "readability": 7,
+        "maintainability": 7,
+        "robustness": 9,
+        "tests": 10,
+        "docs": 9,
+        "overall": 9,
+        "bugs": [
+          "Formulas that fail to parse are never rewritten by structural edits or copy. Their reference tokens go stale after rows or columns move. This is a documented choice, but arguably contradicts the brief's rewrite rule.",
+          "ArgumentTypeError subclasses both TypeError and ValueError. This is unusual API surface beyond the spec.",
+          "Performance tests have tight wall-clock budgets (the chain test runs 2.0-2.7s against a 3s limit, per the notes), so they are likely flaky on slower CI."
+        ],
+        "strengths": [
+          "Fully non-recursive: shunting-yard parser, explicit-stack code generation, and a stack VM where IF/IFERROR compile to jumps.",
+          "Recalculation uses Kahn ordering with Tarjan only on the leftover part, a fast path for cells nothing reads, and dirty-propagation pruning so unchanged inputs don't re-evaluate.",
+          "2-D dyadic range index gives logarithmic lookups even for whole-grid ranges and never scans unrelated ranges.",
+          "Incremental structural edits: a reach-based skip, relocation of compiled code without re-parsing, and recalculation only of lossy formulas.",
+          "Randomized differential test checks values and change lists against freshly built sheets across set, copy, insert and delete. This is excellent validation of the optimisations.",
+          "Very thorough, well-organized tests and comprehensive NOTES covering every behaviour decision."
+        ],
+        "weaknesses": [
+          "Highest complexity: compiled tuples indexed for GC friendliness, the lossy-tracking side channel in StructuralTransform, and many type: ignore comments raise the onboarding cost.",
+          "Adding a lazy function requires touching the code generator (special-cased by name).",
+          "The engine and the Sheet facade are split with a boolean 'rows' flag API."
+        ]
+      },
+      "Z": {
+        "design": 7,
+        "readability": 7,
+        "maintainability": 6,
+        "robustness": 6,
+        "tests": 6,
+        "docs": 7,
+        "overall": 7,
+        "bugs": [
+          "copy iterates every cell of the source rectangle and stores and recalcs each one, including empty cells. Copying a whole column (A1:A1048576) does about a million _store calls and creates a million-element seed list, so it is unusable for large sparse ranges.",
+          "Lenient tokenization in rewrite skips untokenizable characters one at a time. Inside an unterminated string (e.g. '=\"abc A1'), text after the quote can be treated as a reference and rewritten.",
+          "delete_rows/delete_cols do not reject a deletion that runs past the grid edge, unlike the other validation.",
+          "Both function arity (ARITY in _formula.py) and implementations (FUNCTIONS in _evaluator.py) must be kept in sync by hand, and IF/IFERROR are special-cased in the compiler."
+        ],
+        "strengths": [
+          "Non-recursive pipeline: shunting-yard parser, compilation to flat code with jumps, and a VM. Iterative Tarjan restricted to formula cells, avoiding literal-to-formula edge blowup.",
+          "Per-axis multi-resolution range index handles tall single-column ranges without colliding with neighbouring columns.",
+          "Structural edits are incremental: only affected formulas are rewritten and recompiled, and recalc is seeded with them plus dependents of removed cells.",
+          "Rewriting preserves whitespace around ':' by replacing endpoint spans individually."
+        ],
+        "weaknesses": [
+          "The copy scalability bug.",
+          "Tests are reasonable but thinner, with some awkward assertions (e.g. scanning candidate addresses to locate a moved formula) and no differential testing.",
+          "_ValueStore subclassing dict as the evaluator interface is a bit clever.",
+          "Function metadata is split across modules."
+        ]
+      }
+    },
+    "ranking": [
+      "Y",
+      "X",
+      "Z"
+    ],
+    "rationale": "Y is the strongest engineering: fully iterative evaluation, a logarithmic range index, pruned incremental recalc and incremental structural edits, all backed by a randomized differential test and exhaustive notes. Its main cost is complexity. X is the most readable and has excellent brief-driven tests and docs. Its architecture leans on a process-global recursion-limit hack, full recalculation on structural edits, and a linear scan for large ranges. Z has a better core design than X (VM, incremental structural edits, good range index). Its copy implementation touches every cell of the source block, which breaks on large sparse ranges, and its tests and docs are thinner, so it ranks last narrowly."
+  },
+  "raw": null
+}

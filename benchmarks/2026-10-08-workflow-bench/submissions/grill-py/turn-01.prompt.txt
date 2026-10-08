@@ -1,0 +1,1 @@
+/grilling I want you to build the library specified in /arena/BRIEF.md (starter code is in /arena). Before anything is built, grill me about it until we reach a shared understanding.

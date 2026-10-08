@@ -1,0 +1,7 @@
+{
+"chain_100k": [482, 3712],
+"sum_100k_edits": [3694, 4294],
+"range_index_2k_formulas": [198, 569],
+"fanout_20k": [1046, 1430],
+"insert_rows_50k": [4336, 5430],
+"copy_block_100x50": [86, 1141]}

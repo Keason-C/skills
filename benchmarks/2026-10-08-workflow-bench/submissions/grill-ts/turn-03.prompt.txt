@@ -1,0 +1,10 @@
+**Q16:** Yes, (a), with one correction for zero-delay retries.
+
+When the computed delay is 0, the task is put back in the queue right *after* the `retry` event, not before it. So inside a `retry` listener the task always shows `"retrying"`, whatever the delay. With delay 0, it becomes `"queued"` immediately after the `retry` listeners return. That moment also sets its place in the ready order. No timer is created.
+
+Everything else in (a) stands:
+- The task's own outcome, the cascaded cancellations and the freed slot are all committed before any event fires.
+- Dispatch happens after those events and emits its own `start` events.
+- In a `start` listener the task shows `"running"`.
+
+Confirmed: we have a shared understanding. Go ahead and record the decisions and start the build.

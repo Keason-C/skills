@@ -1,0 +1,98 @@
+{
+  "model": "claude-opus-5-5",
+  "mapping": {
+    "X": "pstack",
+    "Y": "matt",
+    "Z": "grill"
+  },
+  "result": {
+    "scores": {
+      "X": {
+        "design": 8,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 9,
+        "tests": 10,
+        "docs": 9,
+        "overall": 9,
+        "bugs": [
+          "Cycle detection walks every node reachable from the new task's deps on every add, so cost is O(V+E) per add and quadratic when building large graphs (a performance issue, not a correctness bug)",
+          "emit() queues a closure that snapshots the listener set at delivery time, not at emit time, so a listener subscribed between queueing and flush receives an event that predates its subscription",
+          "dependentsOf entries for ids that are never added stay forever (minor)"
+        ],
+        "strengths": [
+          "Phase is a discriminated union carrying per-state data (the attempt, the backoff handle, the terminal value or error), so invalid combinations cannot be represented",
+          "A single isCurrent(task, attempt) identity check covers late settles, timeouts and cancels",
+          "Binary heap with lazy invalidation: an entry is live only while it is the task's current queued phase object",
+          "Transactions with a queued event flush guarantee the documented event order under re-entrancy",
+          "An exceptionally thorough black-box test suite with exact event-sequence assertions, re-entrancy and hygiene checks (no global timers or Date.now), plus a mutation-testing script"
+        ],
+        "weaknesses": [
+          "Everything is in one ~500-line file, with no separate modules for the heap or the emitter",
+          "The deferred event delivery is subtle: a nested call returns before its own events reach listeners, which needs care to reason about",
+          "The order of duplicate check versus validation differs from common expectations (documented, though)"
+        ]
+      },
+      "Y": {
+        "design": 6,
+        "readability": 7,
+        "maintainability": 6,
+        "robustness": 6,
+        "tests": 6,
+        "docs": 8,
+        "overall": 6,
+        "bugs": [
+          "ctx.deps is built with deps[dep] = ..., so a dependency id of \"__proto__\" sets the object's prototype instead of creating an own key",
+          "findCycle is recursive and copies the path at each step ([...path, node]), so deep chains can overflow the stack and long paths cost O(n^2)",
+          "dispatch() scans the whole queued Set linearly for every start, giving O(n^2) total dispatch on large queues"
+        ],
+        "strengths": [
+          "Simple, easy-to-follow operate()/dispatchAndCheckIdle structure",
+          "The attempt-token pattern cleanly ignores stale settles",
+          "Handles an abort listener re-entrantly cancelling during attemptFailed",
+          "Good NOTES covering open decisions, including the onIdle-mid-operation subtlety"
+        ],
+        "weaknesses": [
+          "A flat Task record with many optional, mutually dependent fields (controller, timers, token, value, error) leaves state invariants implicit",
+          "Cascade sets state, but result rejection happens in two places (finish and cascade), which is easy to get wrong when extending",
+          "Thin test suite: few exact event-order assertions, no unhandled-rejection checks, no hygiene checks for global timers or Date.now",
+          "TimeoutError is added as the cause of a timeout, an extra type of debatable value"
+        ]
+      },
+      "Z": {
+        "design": 9,
+        "readability": 8,
+        "maintainability": 8,
+        "robustness": 8,
+        "tests": 8,
+        "docs": 8,
+        "overall": 8,
+        "bugs": [
+          "timeoutMs: Infinity is rejected with a RangeError, which is stricter than the brief implies (documented, but may surprise callers)",
+          "NOTES points to an external spec.md (redacted path) for the full decision record, which is not in the repo",
+          "The cascade cause is the first dead dependency in deps order rather than the edge the cascade actually traversed; documented, but it differs from a 'direct path' reading"
+        ],
+        "strengths": [
+          "Clean modular split: a generic Heap and Emitter in src/internal, and the scheduler logic in index.ts",
+          "Unmet-dependency counters plus a forwardRefs map make readiness O(1) per edge",
+          "Cycle detection runs only when a forward reference to the new id exists (or a self-dependency), so it is O(deps) in the common case; it is iterative",
+          "Iterative graph walks, with a 20k-deep chain test proving there is no stack exhaustion",
+          "'Commit then emit' discipline, so listeners always observe final states",
+          "Tests install an unhandled-rejection guard per file and include a 300-task randomized priority check"
+        ],
+        "weaknesses": [
+          "Some tests assert loosely (log.map(e => e[0])) rather than exact payloads",
+          "No test of global timer or Date.now avoidance",
+          "The assignDependencyError stack walk is clever but harder to follow than a BFS-carried cause"
+        ]
+      }
+    },
+    "ranking": [
+      "X",
+      "Z",
+      "Y"
+    ],
+    "rationale": "X and Z are both high-quality, well-reasoned designs. Z is the better-factored and more scalable implementation (heap and emitter modules, unmet counters, cheap and iterative cycle detection). X wins overall on the strength of its exemplary black-box test suite with mutation testing, its precise documentation, and the elegant phase-union and attempt-identity invariants. Y is correct and readable, but it scales poorly (linear dispatch scan, recursive path-copying cycle search) and has a __proto__ ctx.deps bug. Y's tests are also noticeably thinner and less precise than the other two."
+  },
+  "raw": null
+}

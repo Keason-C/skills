@@ -1,0 +1,51 @@
+{
+  "turns": 1,
+  "cost_usd": 14.29,
+  "api_secs": 2461,
+  "tool_calls": {
+    "Bash": 104,
+    "Write": 7,
+    "Agent": 4,
+    "SubagentHandback": 4,
+    "Skill": 3,
+    "Edit": 1
+  },
+  "skills": {
+    "pstack:poteto-mode": 1,
+    "pstack:deslop": 1,
+    "pstack:no-comments": 1
+  },
+  "subagents": 4,
+  "subagent_models": {
+    "opus": 1,
+    "fable": 1,
+    "inherit": 1,
+    "sonnet": 1
+  },
+  "model_tokens": {
+    "claude-opus-5-5": {
+      "in": 442144,
+      "out": 150212,
+      "cache_read": 8266419,
+      "cost": 7.32
+    },
+    "claude-fable-5-1": {
+      "in": 231272,
+      "out": 70449,
+      "cache_read": 684190,
+      "cost": 6.58
+    },
+    "claude-sonnet-5-5": {
+      "in": 69113,
+      "out": 15276,
+      "cache_read": 295616,
+      "cost": 0.38
+    }
+  },
+  "denied": 0,
+  "bench_done": true,
+  "wall_secs": 4351,
+  "po_relays": 0,
+  "ask_po_calls": 1,
+  "tool_calls_total": 123
+}
