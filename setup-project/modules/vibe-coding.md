@@ -2,4 +2,4 @@
 
 - API facts, including those in conceptual answers: verify against the installed
   package; otherwise use version-matched official docs and disclose the limitation.
-- Concepts & patterns: consult relevant skills, Context7, or official docs as needed.
+- Before writing framework/library code, consult relevant skills, Context7, and version-matched official docs. For concepts and patterns, consult these as needed; plain logic needs no lookup.

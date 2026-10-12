@@ -10,6 +10,8 @@
 | [`tech-stack.md`](tech-stack.md) | choices and their rationale, where it deploys, what is ruled out |
 | [`roadmap/`](roadmap/) | one file per version, `v<N>-<slug>.md`: charter, acceptance, Phases, and what the version leaves out |
 | [`CONVENTIONS.md`](CONVENTIONS.md) | how a doc here is written and when its content retires |
-| [`template/`](template/) | the blank of every doc here — the reference for the shape a doc keeps, and what a new one is copied from |
+| [`template/`](template/) | blanks for the authored constitution docs — the reference for their shape and what a new one is copied from |
+
+Optional: `CODE_REVIEW_STANDARDS.md` holds the selected `code-style` module and project coding standards for `code-review`. Its read trigger lives in `AGENTS.md`'s Matt Pocock rules.
 
 ADRs: {{ADR_DIR}}. Specs and tickets: {{ISSUES_DIR}}. Archive: root [`archive/`](../archive/).

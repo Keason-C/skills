@@ -1,11 +1,11 @@
 ---
 name: setup-project
-description: Set up a project — inject stack/workflow modules from the global template set into its AGENTS.md as snapshot blocks (the constitution module scaffolds constitution-doc/).
+description: Set up a project — inject selected stack, workflow, and coding-standard modules as snapshot blocks into AGENTS.md and constitution-doc/.
 ---
 
 # Set up project
 
-Inject selected modules from this skill's `modules/` folder into the project's root `AGENTS.md` as marked snapshot blocks (the `constitution` module also includes `file` routing and scaffolds the project's `constitution-doc/` folder). Evidence informs the user; the user decides which modules to select. Re-runs refresh existing blocks; removal is the user's own edit, except the `design` → `file` replacement described below.
+Inject selected modules from this skill's `modules/` folder as marked snapshot blocks. Workflow modules live in root `AGENTS.md`; `code-style` lives in `constitution-doc/CODE_REVIEW_STANDARDS.md`; stack modules follow Stack modules below. The `constitution` module also includes `file` routing and scaffolds `constitution-doc/`. Evidence informs the user; the user decides which modules to select. Re-runs refresh existing blocks; removal is the user's own edit, except the `design` → `file` replacement described below.
 
 This is a prompt-driven skill, not a deterministic script. Resolve supporting skills from the current catalog and read their `SKILL.md` files directly. Use the current question tool within its availability rules; use a concise chat question when a required answer cannot be collected through that tool. Existing session authorization covers the same scope; ask only for choices or changes still unresolved. The project instruction file is `AGENTS.md`; maintain it directly without installing a second instruction file, sync hooks, or a file watcher.
 
@@ -15,13 +15,14 @@ This is a prompt-driven skill, not a deterministic script. Resolve supporting sk
 
 If the project's `AGENTS.md` already carries a `language` block, its value is the answer: skip the question and speak that language from the first word. Otherwise use an established session language preference; if none exists, ask the user in English: "What language should I use when talking with you?" (English, because the answer isn't known yet.) Conduct the rest of the session in the answered language.
 
-The answer is also the value of `{{USER_LANGUAGE}}`, rendered on injection into every template that carries it — today that is `modules/language.md`. `modules/mattpocock-rules.md` carries `{{MATTPOCOCK_RULES_PATH}}`, rendered the same way (see the mattpocock-rules file section). Agent-facing text inside every template stays English.
+The answer is also the value of `{{USER_LANGUAGE}}`, rendered on injection into every template that carries it — today that is `modules/language.md`. Agent-facing text inside every template stays English.
 
 ### 1. Explore
 
-- Root `AGENTS.md`, and `constitution-doc/tech-stack.md` when it exists — which `<!-- module:NAME -->` blocks does each contain, and does each block's content match the current template in `modules/`, rendered? A stack block sitting in `AGENTS.md` while `constitution` is in play is recorded as **to move**.
+- Root `AGENTS.md`, and `constitution-doc/tech-stack.md` and `constitution-doc/CODE_REVIEW_STANDARDS.md` when they exist — which `<!-- module:NAME -->` blocks does each contain, and does each block's content match the current template in `modules/`, rendered? Record a `code-style` block outside `CODE_REVIEW_STANDARDS.md`, or a stack block in `AGENTS.md` while `constitution` is in play, as **to move**.
+- Root `.gitignore` — missing / already ignores root `archive/` / needs an ignore rule.
 - Root `constitution-doc/` — exists? Which of the content files (`README.md`, `mission.md`, `tech-stack.md`) are missing or retired (see Retired content)? And each method file — `CONVENTIONS.md`, plus every blank in `template/` — missing / matching the current template / differing? A filled doc says nothing about its blank; judge each blank by its own path under `template/`.
-- The mattpocock overrides file — inspect the current pointer and intended `{{MATTPOCOCK_RULES_PATH}}`; record any relocation and compare the existing snapshot with the template (see mattpocock-rules file). Only matters when `mattpocock-rules` is injected or gets selected.
+- If an existing `mattpocock-rules` block is a pointer, read its referenced file as the current module snapshot (see Legacy Matt Pocock rules).
 - Gather the evidence in the Modules and evidence table. Record the concrete findings (file names, dependency names), not just yes/no.
 - Include `file` when `constitution` is in play; identify legacy `design` blocks for replacement (see File routing).
 
@@ -34,9 +35,9 @@ One line per module: name, injection status, evidence verbatim ("found `pyprojec
 - **Not injected** → user picks which to inject.
 - **Injected & differs** → the snapshot ask.
 - **Injected & up to date** → report as up to date; nothing to ask.
-- **To move** (a stack block in `AGENTS.md` with `constitution` in play) → a statement, "will move `backend-python` into `tech-stack.md`"; its diff status is presented like any other block.
+- **To move** → a statement naming its destination, such as "will move `code-style` into `constitution-doc/CODE_REVIEW_STANDARDS.md`" or "will move `backend-python` into `tech-stack.md`"; its diff status is presented like any other block.
 
-`constitution` joins the module question like the rest. Everything that is not a module is a **statement**, not a choice: "will create `constitution-doc/` and add X, Y", "will write the overrides file at `{{MATTPOCOCK_RULES_PATH}}`" — or "in place" where nothing is missing. Beyond the module choices, ask only about a snapshot that differs.
+`constitution` joins the module question like the rest. Everything that is not a module is a **statement**, not a choice: "will create `constitution-doc/` and add X, Y", ".gitignore will ignore root archive/" — or "in place" where nothing is missing. Beyond the module choices, ask only about a snapshot that differs.
 
 ### 3. Confirm
 
@@ -47,19 +48,21 @@ Done when every planned injection and replacement is covered by the user's choic
 ### 4. Write
 
 - Create `AGENTS.md` if missing.
-- New modules: append their blocks at the end of their host file, except `file` (stack modules with `constitution` in play → `tech-stack.md`, after the constitution docs have been scaffolded so the file exists). Render `file` using File routing below.
+- On every setup, ensure root `archive/` is ignored by Git. Create root `.gitignore` if missing; append `/archive/` only when no effective existing rule already ignores that directory. Preserve existing `.gitignore` content and tracked files; this creates no `archive/` directory.
+- New modules: append their blocks at the end of their host file, except `file`. For `code-style`, create its host using Code review standards below. Stack modules with `constitution` in play go into `tech-stack.md`, after the constitution docs have been scaffolded so the file exists. Render `file` using File routing below.
 - Keep the `file` block at the top of root `AGENTS.md` on both initial setup and re-runs; move an existing block there without changing its content unless a refresh was chosen.
 - Refreshed modules: replace content between their existing markers in place.
-- Stack blocks to move: cut the block out of `AGENTS.md` (its markers and the blank line before them) and append it, unchanged, to `tech-stack.md`; a refresh the user chose applies after the move.
-- Every line outside the markers is preserved verbatim, in both host files.
+- Legacy `mattpocock-rules` pointers: replace the pointer with the chosen rules inside the existing block (see Legacy Matt Pocock rules).
+- Blocks to move: cut the block out of its old host (its markers and the blank line before them) and append it, unchanged, to its destination; a refresh the user chose applies after the move.
+- Every line outside the markers is preserved verbatim, in all existing host files.
 - If `constitution` was selected or its block already exists: copy every missing constitution doc file into `constitution-doc/` (creating it, and an empty `roadmap/`, if needed) — every blank into `template/` whatever the project has already filled in, and each missing content doc from its blank; overwrite a method file only where the user chose to refresh it; inject its block if not present.
-- If `mattpocock-rules` was selected or its block already exists: relocate an existing snapshot when needed (see mattpocock-rules file); copy `agents/mattpocock-rules.md` only when no existing snapshot is available, or overwrite where the user chose to refresh. Under `constitution-doc/`, add the README row if absent.
 
-Done when each selected module has exactly one marker block across active host files, whose content matches the confirmed draft, `constitution-doc/` contains every required, non-retired doc whenever the `constitution` module is in play — `template/` always holding all four blanks, and `roadmap/` present, empty until the first version — and each method file is the version the user chose.
+Done when root `.gitignore` effectively ignores `archive/`, each selected module has exactly one marker block in its designated host file, whose content matches the confirmed draft, `constitution-doc/` contains every required, non-retired doc whenever the `constitution` module is in play — `template/` always holding all four blanks, and `roadmap/` present, empty until the first version — and each method file is the version the user chose.
 
 ### 5. Done
 
-Report per module: injected / refreshed / kept / up to date / not selected, naming the host file, and "moved to `tech-stack.md`" where a stack block moved; plus, when `constitution` is in play, which doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring, filled section by section as the project earns the content — plus each method file's outcome (scaffolded / restored / refreshed / kept / up to date); plus, when `mattpocock-rules` is in play, the overrides file outcome (written / refreshed / kept / in place). Remind the user: re-run `$setup-project` after global template updates to refresh; remove a module by deleting its marker block.
+Report per module: injected / refreshed / kept / up to date / not selected, naming the host file and destination of any move; plus, when `constitution` is in play, which doc files were scaffolded — and that scaffolded files are templates awaiting the user's authoring, filled section by section as the project earns the content — plus each method file's outcome (scaffolded / restored / refreshed / kept / up to date). Report whether `CODE_REVIEW_STANDARDS.md` was created or retained and whether the `mattpocock-rules` review entry is present. For a legacy Matt Pocock pointer, report that its rules were inlined and name the retained source file. Remind the user: re-run `$setup-project` after global template updates to refresh; remove a module by deleting its marker block.
+Report the `.gitignore` outcome: created / updated / in place.
 
 ## Reference
 
@@ -69,9 +72,9 @@ Content archived at `archive/<project-relative-path>` or explicitly retired by t
 
 ### Snapshots
 
-Everything this skill writes from a template — a module block, a method file, the overrides file — is a **snapshot**: copied verbatim, and owned by the project from that moment, so user edits inside it are expected and protected. A missing snapshot is restored.
+Everything this skill writes from a template — a module block or a method file — is a **snapshot**: copied verbatim, and owned by the project from that moment, so user edits inside it are expected and protected. A missing snapshot is restored.
 
-On a re-run, every snapshot is diffed against its template **rendered** (`{{USER_LANGUAGE}}` and `{{MATTPOCOCK_RULES_PATH}}` substituted first, so rendered values never count as diffs and a literal `{{...}}` never reaches the project; constitution blanks in `template/` are the exception: their placeholders are content, copied as-is):
+On a re-run, every snapshot is diffed against its template **rendered** (`{{USER_LANGUAGE}}` substituted first, so rendered values never count as diffs and a literal `{{...}}` never reaches the project; constitution blanks in `template/` are the exception: their placeholders are content, copied as-is):
 - **Identical**: marked as up to date; nothing to ask.
 - **Differs**: the **snapshot ask** — show the diff and ask **keep** (the difference may be the project's own earned edits, and keep protects them) or **overwrite** (take the current template).
 
@@ -80,14 +83,15 @@ On a re-run, every snapshot is diffed against its template **rendered** (`{{USER
 | Module | Evidence to gather |
 |---|---|
 | `language` | none — parameterized by the language question in step 0 |
+| `code-style` | none — optional coding rules across stacks; injected into `constitution-doc/CODE_REVIEW_STANDARDS.md` |
 | `backend-python` | `pyproject.toml`, `setup.py`, or `environment.yml` exists |
 | `database` | deps include `sqlmodel`, `sqlalchemy`, `alembic`, `asyncpg`, `psycopg`, `aiosqlite`, `duckdb` or `polars`, or a compose file defines a `postgres` service |
 | `frontend-ts` | `package.json` deps include `vite` or `react`, or `tsconfig.json` exists |
 | `agent-dev` | backend or frontend evidence holds AND deps include `pydantic-ai`, `open-interpreter`, `@anthropic-ai/*`, or `ai` (Vercel AI SDK) |
 | `vibe-coding` | none — always presented as "no detection signal" |
-| `mattpocock-rules` | Relevant skills such as `to-spec`, `to-tickets`, `grilling`, `implement`, or `teach` exist in the current skill catalog or installed skill roots; record their resolved paths |
+| `mattpocock-rules` | Relevant skills such as `to-spec`, `to-tickets`, `grilling`, or `code-review` exist in the current skill catalog or installed skill roots; record their resolved paths |
 | `constitution` | root `constitution-doc/` already exists; otherwise presented as "no signal" (see Constitution docs below) |
-| `file` | root `.design/`, `.skills-doc/`, `archive/`, or `constitution-doc/` exists; legacy `design` block; included with `constitution` |
+| `file` | root `.design/`, `archive/`, or `constitution-doc/` exists; legacy `design` block; included with `constitution` |
 
 ### File routing
 
@@ -100,7 +104,7 @@ Offer `design` → `file` as a snapshot replacement; if the user keeps the legac
 The `constitution` module carries more than its block: when it is selected (or already injected from an earlier run), this skill also scaffolds the project's constitution docs from its `constitution-doc/` template folder into a `constitution-doc/` folder at the project root. The folder holds **two layers**, and each is treated differently:
 
 - **Content** — `README.md`, `mission.md`, `tech-stack.md`, each copied from its blank in `template/`. **Fill gaps only**: a blank is copied to the doc's own path where the doc is missing, and an existing doc stays exactly as it is. Once filled in, these are living project documents that keep their content across template updates. A project scaffolded from an earlier layout (`architecture/` + `api-design.md`, `modules/`, or a combined `constitution.md`) gets the new files added beside the old ones; moving its content over is the user's own migration.
-- **Method** — `CONVENTIONS.md` (how a doc here is written and when one retires) and `template/`, holding the blank of every doc: `README.md`, `mission.md`, `tech-stack.md`, `v{{N}}-{{SLUG}}.md`. The folder is where an agent looks up the intended shape of a doc — a reference to consult and copy from, not a form the doc must match. These are **fixtures** the project reads as-is, and each is a snapshot — every blank in `template/` restored no matter which docs the project has already filled in. This is the path by which method learned on one project reaches the next: improve the template, and every project's next `$setup-project` offers it.
+- **Method** — `CONVENTIONS.md` (how a doc here is written and when one retires) and `template/`, holding the blanks of the authored constitution docs: `README.md`, `mission.md`, `tech-stack.md`, `v{{N}}-{{SLUG}}.md`. The folder is where an agent looks up the intended shape of a doc — a reference to consult and copy from, not a form the doc must match. These are **fixtures** the project reads as-is, and each is a snapshot — every blank in `template/` restored no matter which docs the project has already filled in. This is the path by which method learned on one project reaches the next: improve the template, and every project's next `$setup-project` offers it.
 
 The rest:
 
@@ -108,27 +112,30 @@ The rest:
 - **Copy verbatim.** `{{...}}` placeholders and template comments stay as-is; they guide whoever authors the docs later, not this skill.
 - The `file` block routes to this folder; `constitution` holds its document policies. Both are snapshots.
 
+### Code review standards
+
+`code-style` is independently selectable. Its host is always `constitution-doc/CODE_REVIEW_STANDARDS.md`, whether or not `constitution` is in play. For an injection or move, create the folder and host with the heading `# Code review standards` where missing; an existing block in this host follows the snapshot rules. The other constitution docs are scaffolded only when `constitution` is in play.
+
+A legacy `code-style` block in `AGENTS.md` or `tech-stack.md` moves to this host with its content and markers unchanged. Snapshot choices apply to its content after the move. An existing `CODE_REVIEW_STANDARDS.md` keeps all content outside the module markers. When `code-style` is neither selected nor already injected, leave an existing standards file intact and create none.
+
+The `mattpocock-rules` template carries the review read trigger under `## code-review`. Present it as the optional `AGENTS.md` entry for these standards; `code-style` and `mattpocock-rules` remain separate module choices.
+
 ### Stack modules
 
 `backend-python`, `database`, `frontend-ts` and `agent-dev` are **stack modules**: what the code is built on and how it is written. Their **host file** depends on the `constitution` module:
 
 - `constitution` in play → the host is `constitution-doc/tech-stack.md`; the blocks append at its end, and that file is the only place they live. The `file` block's tech-stack pointer is how the agent reaches them. The doc's own Core table records the project's decisions with rationale; the blocks are the defaults those decisions were made against — the two are meant to coexist, and pruning a block down to what the table leaves unsaid is a user edit that snapshot semantics protect.
-- otherwise → the host is `AGENTS.md`, as for every other module.
+- otherwise → the host is `AGENTS.md`.
 
 A stack block found in `AGENTS.md` while `constitution` is in play is **moved**: the block, content unchanged, leaves `AGENTS.md` and appends to `tech-stack.md`. Automatic — the user is informed, not asked; it stays the snapshot it was.
 
-### mattpocock-rules file
+### Legacy Matt Pocock rules
 
-The `mattpocock-rules` block is a pointer read before running the named skills. Shared rules and per-skill overrides live in a snapshot of this skill's `agents/mattpocock-rules.md`, written whenever the module is selected or already injected. Its location is `{{MATTPOCOCK_RULES_PATH}}`, rendered into the block on injection:
-
-- `constitution` module in play → `constitution-doc/mattpocock-rules.md`, a method file beside `CONVENTIONS.md` (no blank in `template/`). Add its row to the layout table in `constitution-doc/README.md` when the table lacks one — the user is informed, not asked.
-- otherwise → `.skills-doc/agents/mattpocock-rules.md`.
-
-When the path changes, carry the existing snapshot and its project edits to the new location, then update its pointer; compare that snapshot with the global template through the normal snapshot choice. If both locations contain differing files, resolve which content to keep with the user before moving.
+`mattpocock-rules` is an inline module in root `AGENTS.md`. For an older pointer block, treat its referenced rules file as the existing module snapshot: **keep** carries that content and its project edits into the block; **overwrite** takes the current module template. If the referenced file is missing, restore from the current inline template. Retain the old file for the project's own cleanup; re-runs manage only the inline block.
 
 ### Block format
 
-One block per module in its host file — `AGENTS.md`, or `constitution-doc/tech-stack.md` for a stack module when `constitution` is in play (see Stack modules):
+One block per module in its host file — `constitution-doc/CODE_REVIEW_STANDARDS.md` for `code-style`, `constitution-doc/tech-stack.md` for a stack module when `constitution` is in play, otherwise `AGENTS.md`:
 
 ```markdown
 <!-- module:backend-python -->
