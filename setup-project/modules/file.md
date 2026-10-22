@@ -2,13 +2,10 @@
 
 Paths are relative to the project root unless marked absolute.
 
-| Path | Purpose / when to read |
+| Path | Purpose |
 | --- | --- |
-| `/tmp/<project>-<task>-*/` (absolute) | One-off scripts, probe outputs, and intermediate files; create with `mktemp -d`. |
+| `/tmp/<project>-<task>-*/` (absolute) | One-off scripts, probe outputs, and intermediate files. |
 | `.design/` | Mockups, diagrams, and prototypes for visual design work. |
-| `archive/` | Retired materials, ignored by Git; historical reference on demand. |
-| `constitution-doc/README.md` | Project documentation index. |
-| `constitution-doc/mission.md` | Goals, priorities, and the active version; scope and priority decisions. |
-| `constitution-doc/roadmap/` | Version scope and Phase progress. |
-| `constitution-doc/CONVENTIONS.md` | Read before constitution edits, Phase progress updates, or archival. |
-| `constitution-doc/tech-stack.md` | Relevant stack choices, deployment, and coding conventions. |
+| `archive/` | Retired materials and historical references. |
+| `docs/mission.md` | Project background, audience, goals, scope, and acceptance criteria. |
+| `docs/tech-stack.md` | Technical choices, rationale, deployment, alternatives, and project conventions. |

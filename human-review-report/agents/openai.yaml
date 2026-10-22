@@ -1,0 +1,6 @@
+interface:
+  display_name: "Human Review Report"
+  short_description: "Report system risks by area and human review priority"
+  default_prompt: "Use $human-review-report to review the system impact of this task's changes. Follow my language conventions and report directly in chat, grouped by area and ordered by review priority. Do not write a document; leave further changes for me to decide."
+policy:
+  allow_implicit_invocation: false
