@@ -1,5 +1,6 @@
 ---
 name: setup-project
+disable-model-invocation: true
 description: Set up or refresh project documentation and stack conventions in AGENTS.md and docs/, with independently selectable documents and modules.
 ---
 
