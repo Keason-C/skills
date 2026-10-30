@@ -1,5 +1,6 @@
 ---
 name: human-review-report
+disable-model-invocation: true
 description: Use only when the user invokes human-review-report or explicitly requests this report. Review the system impact of the current changes and report directly in chat, following the user's language conventions and grouping findings by area and review priority. Do not write a document.
 ---
 
